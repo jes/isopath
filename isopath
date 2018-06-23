@@ -1,0 +1,112 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Mojolicious::Lite;
+use Mojo::JSON qw(decode_json);
+use Try::Tiny;
+
+my %clients_for_gameid;
+my %gameids_for_client;
+my %client_game_colour;
+
+sub make_gameid {
+    my $s = '';
+
+    my @alphabet = split //, 'abcdefghijklmnopqrstuvwxyz';
+    $s .= $alphabet[rand $#alphabet] for 1..10;
+
+    return $s;
+}
+
+# clear hash entries associated with this game
+sub end_game {
+    my $gameid = @_;
+
+    for my $client (@{ $clients_for_gameid{$gameid} }) {
+        $gameids_for_client{$client} = [grep { $_ ne $gameid } @{ $gameids_for_client{$client} }];
+        delete $client_game_colour{$client . ";" . $gameid};
+    }
+
+    delete $clients_for_gameid{$gameid};
+}
+
+get '/' => sub { shift->render('index') };
+
+websocket '/ws' => sub {
+    my ($self) = @_;
+
+    # TODO: verify that this client is allowed to alter state in this game
+
+    $self->on(message => sub {
+        my ($self, $msg_str) = @_;
+
+        try {
+            my $msg = decode_json($msg_str);
+
+            die "isopath-error: no operation specified\n" if !$msg->{op};
+
+            if ($msg->{op} eq 'new-game') {
+                my $gameid = make_gameid();
+                $clients_for_gameid{$gameid} = [$self];
+                push @{ $gameids_for_client{$self} }, $gameid;
+                $client_game_colour{$self . ";" . $gameid} = $msg->{player};
+                return $self->send(encode_json(op => 'new-game', game => $gameid));
+
+            } elsif ($msg->{op} eq 'end-game') {
+                my $gameid = $msg->{game};
+
+                die "isopath-error: don't recognise game id '$gameid'\n"
+                    unless $clients_for_gameid{$gameid};
+
+                $_->send($msg) for @{ $clients_for_gameid{$gameid} };
+                end_game($gameid);
+
+            } elsif ($msg->{op} eq 'join-game') {
+                my $gameid = $msg->{game};
+
+                die "isopath-error: don't recognise game id '$gameid'\n"
+                    unless $clients_for_gameid{$gameid} && (@{ $clients_for_gameid{$gameid} } < 2);
+
+                my $opponent = $clients_for_gameid{$gameid}[0];
+                my $opponent_colour = $client_game_colour{$opponent . ";" . $gameid};
+                my $self_colour = ($opponent_colour eq 'white' ? 'black' : 'white');
+                push @{ $clients_for_gameid{$gameid} }, $self;
+                push @{ $gameids_for_client{$self} }, $gameid;
+                $client_game_colour{$self . ";" . $gameid} = $self_colour;
+                $opponent->send(encode_json(op => 'start-game', game => $gameid, player => $opponent_colour));
+                return $self->send(encode_json(op => 'start-game', game => $gameid, player => $self_colour));
+
+            } elsif ($msg->{op} eq 'play-move') {
+                my $gameid = $msg->{game};
+
+                die "isopath-error: don't recognise game id '$gameid'\n"
+                    unless $clients_for_gameid{$gameid} && (@{ $clients_for_gameid{$gameid} } == 2);
+
+                my $opponent = grep { $_ ne $self } @{ $clients_for_gameid{$gameid} };
+                $opponent->send($msg);
+
+            } elsif ($msg->{op} eq 'ping') {
+                $self->send(encode_json(op => 'pong'));
+
+            } else {
+                die "isopath-error: don't recognise op '$msg->{op}'\n";
+            }
+        } catch {
+            if ($_ =~ s/^isopath-error: //) {
+                $_ =~ s/\n$//g;
+                return $self->send(encode_json(op => 'error', error => $_));
+            } else {
+                die $_;
+            }
+        };
+    });
+
+    $self->on(finish => sub {
+        # TODO: if this client was a player in any active games,
+        # tell the opponents that this client has disconnected and end the game
+    });
+};
+
+app->start;

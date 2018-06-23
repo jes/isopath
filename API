@@ -1,0 +1,84 @@
+connect to websocket at /ws
+
+It's perfectly fine to play multiple games over the same websocket, although you can't have both players
+of the same game using the same websocket.
+
+It's intended that both human and AI players will use exactly the same websocket API.
+
+It might be handy to write a CLI wrapper that will expose the websocket connection over stdin/stdout to make
+it easier to write clients.
+
+The server is not required to do any validation. Clients should always validate everything.
+
+messages to server:
+  new-game
+    Start a new game. Tell the server whether you want to be white (i.e. play first) or black.
+    {"op":"new-game","player":"white"}
+  end-game
+    Tell the server the game has ended and can be cleaned up (with no information about how or why it ended)
+    {"op":"end-game","game":game-id}
+  join-game
+    Join a game that is pending start
+    {"op":"join-game","game":game-id}
+  play-move
+    Play a move in an active game
+    {"op":"play-move","game":game-id,"move":serialised-move,"board":serialised-board,"history":move-history}
+  ping
+    Just a ping (of the server; not passed to the other player)
+    {"op":"ping"}
+  resign *** future
+    Resign from the current game 
+    {"op":"resign","game":game-id}
+  resume-game *** future
+    Get ready to resume a game
+    {"op":"resume-game","board":serialised-board,"history":move-history}
+
+messages to client:
+    new-game
+      Response to new-game. Gives you a game id
+      {"op":"new-game","game":game-id}
+    end-game
+      Tell the server the game has ended and can be cleaned up (with no information about how or why it ended)
+      {"op":"end-game","game":game-id}
+    start-game
+      Both players have joined and are ready to start the game. This is sent to the first player after the
+      second player joins, and is also sent to the second player immediately after he joins. Also tells you
+      which player you are (and implicitly, whether you are to play first, because white plays first).
+      {"op":"start-game","game":game-id,"player":"black"}
+    play-move
+      This is copied verbatim from the other player's play-move message
+      {"op":"play-move","game":game-id,"move":serialised-move,"board":serialised-board,"history":move-history}
+    disconnected
+      The other player disconnected.
+      {"op":disconnected","game":game-id}
+    error
+      Client sent a message the server couldn't understand
+      {"op":"error","error":"don't recognise op 'foo'"}
+    pong
+      Response to ping (directly from the server, not involving the other player)
+      {"op":"pong"}
+
+    resign *** future
+      The other player has resigned from the game
+      {"op":"resign","game":game-id}
+    resume-game *** future
+      Response to resume-game. Gives you a game id.
+      {"op":resume-game,"game":game-id}
+
+serialised-board
+    This needs to represent the height of bricks at each tile, and the locations of each player's men
+    Each tile is identified by a letter and a number. a1 is bottom left from white's perspective. The leftmost tile
+    on each row, from white's perspective, is number 1. Therefore the top-right-most tile is g4.
+    {"a1":2,"a2":2,"a3":2,"a4":2,"b1":1, ..., "white":["a1","a2","a3","a4"],"black":["g1","g2","g3","g4"]}
+serialised-move
+    This needs to tell where we moved a brick from and to, where we moved a piece from and to, and where (if) we captured
+    a piece. It's a 2-element array. Each element contains a move half.
+    Movement codes are [TYPE,FROM,TO] where FROM and TO are tile names (e.g. "a1") and TYPE is either "piece" or "brick"
+    or ["capture",TILE]
+    [["brick","b2","b1"],["piece","a1","b1"]]
+    [["capture","d3"],["piece","c3","d3"]]
+move-history
+    This is an array of all the moves of the game, starting with the opening move by white.
+    It's just an array of moves. It always includes the latest move, even in a "play-move" operation.
+game-id
+    An opaque string that identifies a game. It is shared between the two participants.
