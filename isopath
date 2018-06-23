@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Mojolicious::Lite;
-use Mojo::JSON qw(decode_json);
+use Mojo::JSON qw(encode_json decode_json);
 use Try::Tiny;
 
 my %clients_for_gameid;
@@ -37,6 +37,8 @@ get '/' => sub { shift->render('index') };
 websocket '/ws' => sub {
     my ($self) = @_;
 
+    $self->inactivity_timeout(600);
+
     # TODO: verify that this client is allowed to alter state in this game
 
     $self->on(message => sub {
@@ -52,7 +54,7 @@ websocket '/ws' => sub {
                 $clients_for_gameid{$gameid} = [$self];
                 push @{ $gameids_for_client{$self} }, $gameid;
                 $client_game_colour{$self . ";" . $gameid} = $msg->{player};
-                return $self->send(encode_json(op => 'new-game', game => $gameid));
+                return $self->send(encode_json({op => 'new-game', game => $gameid}));
 
             } elsif ($msg->{op} eq 'end-game') {
                 my $gameid = $msg->{game};
@@ -75,8 +77,8 @@ websocket '/ws' => sub {
                 push @{ $clients_for_gameid{$gameid} }, $self;
                 push @{ $gameids_for_client{$self} }, $gameid;
                 $client_game_colour{$self . ";" . $gameid} = $self_colour;
-                $opponent->send(encode_json(op => 'start-game', game => $gameid, player => $opponent_colour));
-                return $self->send(encode_json(op => 'start-game', game => $gameid, player => $self_colour));
+                $opponent->send(encode_json({op => 'start-game', game => $gameid, player => $opponent_colour}));
+                return $self->send(encode_json({op => 'start-game', game => $gameid, player => $self_colour}));
 
             } elsif ($msg->{op} eq 'play-move') {
                 my $gameid = $msg->{game};
@@ -88,7 +90,7 @@ websocket '/ws' => sub {
                 $opponent->send($msg);
 
             } elsif ($msg->{op} eq 'ping') {
-                $self->send(encode_json(op => 'pong'));
+                $self->send(encode_json({op => 'pong'}));
 
             } else {
                 die "isopath-error: don't recognise op '$msg->{op}'\n";
@@ -96,7 +98,7 @@ websocket '/ws' => sub {
         } catch {
             if ($_ =~ s/^isopath-error: //) {
                 $_ =~ s/\n$//g;
-                return $self->send(encode_json(op => 'error', error => $_));
+                return $self->send(encode_json({op => 'error', error => $_}));
             } else {
                 die $_;
             }
@@ -104,8 +106,11 @@ websocket '/ws' => sub {
     });
 
     $self->on(finish => sub {
-        # TODO: if this client was a player in any active games,
-        # tell the opponents that this client has disconnected and end the game
+        for my $gameid (@{ $gameids_for_client{$self} }) {
+            my $opponent = grep { $_ ne $self } @{ $clients_for_gameid{$gameid} };
+            $opponent->send(encode_json({op => 'disconnected', game => $gameid})) if $opponent;
+            end_game($gameid);
+        }
     });
 };
 
