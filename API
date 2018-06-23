@@ -38,7 +38,7 @@ messages to client:
       Response to new-game. Gives you a game id
       {"op":"new-game","game":game-id}
     end-game
-      Tell the server the game has ended and can be cleaned up (with no information about how or why it ended)
+      Tell the client the game has been ended explicitly by the other player
       {"op":"end-game","game":game-id}
     start-game
       Both players have joined and are ready to start the game. This is sent to the first player after the
@@ -49,7 +49,7 @@ messages to client:
       This is copied verbatim from the other player's play-move message
       {"op":"play-move","game":game-id,"move":serialised-move,"board":serialised-board,"history":move-history}
     disconnected
-      The other player disconnected.
+      The other player disconnected. Game is ended.
       {"op":disconnected","game":game-id}
     error
       Client sent a message the server couldn't understand
