@@ -30,8 +30,6 @@ $(document).ready(function() {
         if (ingame && ourturn) {
             var this_tile_has = ws.isopath.piece_at(tile);
 
-            console.log("Clicked on " + tile + "; clickmode (pre) = " + clickmode);
-
             if (clickmode == 'piece') {
                 if (this_tile_has == '')
                     move.push(["piece",movefrom,tile]);
