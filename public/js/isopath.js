@@ -11,7 +11,6 @@ function Isopath() {
           'g1','g2','g3','g4'
     ];
 
-    // the players' home row tiles
     this.homerow = {
         'white':['a1','a2','a3','a4'],
         'black':['g1','g2','g3','g4'],
@@ -73,8 +72,6 @@ function Isopath() {
     this.adjacent["d7"].push("d1");
     this.adjacent["a1"].push("a4");
     this.adjacent["a4"].push("a1");
-
-    console.log(this.adjacent);
 
     // game state tracking
     this.moves = [];

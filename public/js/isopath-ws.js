@@ -22,8 +22,10 @@ IsopathWS.prototype.endGame = function() {
 };
 
 IsopathWS.prototype.playMove = function(move) {
+    // TODO: handle exceptions from playMove
     this.isopath.playMove(move);
     this.ws.send(JSON.stringify({'op':'play-move','game':this.gameid,'move':move,'board':this.isopath.board,'history':this.isopath.moves}));
+    this.opts.opponentToMove();
 };
 
 IsopathWS.prototype.ping = function() {
@@ -31,7 +33,6 @@ IsopathWS.prototype.ping = function() {
 };
 
 IsopathWS.prototype.connect = function() {
-    console.log(this.opts.ws);
     var ws = new WebSocket(this.opts.ws);
     this.ws = ws;
 
@@ -59,12 +60,13 @@ IsopathWS.prototype.connect = function() {
         } else if (msg.op == 'start-game') {
             _isothis.opts.gameStarted(msg.player);
             _isothis.player = msg.player;
-            if (_isothis.player == 'white') {
+            if (msg.player == _isothis.isopath.curplayer) {
                 _isothis.opts.usToMove();
             } else {
                 _isothis.opts.opponentToMove();
             }
         } else if (msg.op == 'play-move') {
+            // TODO: handle exceptions from playMove
             _isothis.isopath.playMove(msg.move);
             _isothis.opts.movePlayed(_isothis.player, msg.move);
             if (_isothis.isopath.curplayer == _isothis.player) {
