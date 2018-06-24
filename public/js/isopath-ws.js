@@ -60,6 +60,7 @@ IsopathWS.prototype.connect = function() {
         } else if (msg.op == 'start-game') {
             _isothis.opts.gameStarted(msg.player);
             _isothis.player = msg.player;
+            _isothis.gameid = msg.game;
             if (msg.player == _isothis.isopath.curplayer) {
                 _isothis.opts.usToMove();
             } else {

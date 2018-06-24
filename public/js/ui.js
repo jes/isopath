@@ -3,7 +3,7 @@ $(document).ready(function() {
     // TODO: when they load the page with a gameid in the fragment, try to join that game straight away
 
 
-    // TODO: when we're black, invert the labelling vertically
+    // TODO: when we're black, invert the labelling vertically?
     var tile_to_hex = {
                     a1:41, a2:42, a3:43, a4:44,
                 b1:34, b2:35, b3:36, b4:37, b5:38,
@@ -15,14 +15,51 @@ $(document).ready(function() {
     };
 
     var ws; // an IsopathWS from isopath-ws.js
+    var ingame = false;
+    var ourturn = false;
+    var ourcolour;
+    var opponentcolour;
+    var move = [];
+    var clickmode = '';
 
     function ready() {
         $('#status').text('Ready.');
     }
 
     function clicked_on_hex(tile) {
-        // TODO: make sure it's our turn to move, otherwise do nothing
-        // TODO: handle user input; once they've committed to a move, call ws.playMove
+        if (ingame && ourturn) {
+            var this_tile_has = ws.isopath.piece_at(tile);
+
+            console.log("Clicked on " + tile + "; clickmode (pre) = " + clickmode);
+
+            if (clickmode == 'piece') {
+                if (this_tile_has == '')
+                    move.push(["piece",movefrom,tile]);
+                clickmode = '';
+            } else if (clickmode == 'brick') {
+                if (this_tile_has == '')
+                    move.push(["brick",movefrom,tile]);
+                clickmode = '';
+            } else {
+                clickmode = '';
+                if (this_tile_has == opponentcolour) {
+                    // capture
+                    move.push(["capture",tile]);
+                } else if (this_tile_has == ourcolour) {
+                    // start moving a piece
+                    clickmode = 'piece';
+                    movefrom = tile;
+                } else {
+                    // start moving a brick
+                    clickmode = 'brick';
+                    movefrom = tile;
+                }
+            }
+
+            if (move.length == 2) {
+                ws.playMove(move);
+            }
+        }
     }
 
     function init_hexgrid(player) {
@@ -34,9 +71,9 @@ $(document).ready(function() {
 
         for (var tile in tile_to_hex) {
             var idx = tile_to_hex[tile];
-            $('#hex-' + idx).html("<br>    " + tile);
+            let t = tile;
             $('#hex-' + idx).click(function() {
-                clicked_on_hex(tile);
+                clicked_on_hex(t);
             });
         }
     }
@@ -52,13 +89,17 @@ $(document).ready(function() {
         },
         gameEnded: function(reason) {
             alert("End game because of " + reason);
+            ingame = false;
             ready();
         },
         gameStarted: function(player) {
-            alert("Joined game. We're " + player);
+            ourcolour = player;
+            opponentcolour = (player == 'white' ? 'black' : 'white');
+            $('#yourcolour').text(player);
             $('#await-opponent').hide();
             $('#game').show();
             init_hexgrid(player);
+            ingame = true;
             ready();
         },
         movePlayed: function(player, move) {
@@ -66,11 +107,15 @@ $(document).ready(function() {
             ready();
         },
         usToMove: function() {
-            alert("Us to move");
+            $('#whoseturn').text('your');
+            ourturn = true;
+            clickmode = '';
+            move = [];
             ready();
         },
         opponentToMove: function() {
-            alert("Opponent to move");
+            $('#whoseturn').text("your opponent's");
+            ourturn = false;
             ready();
         },
         connected: function() {
@@ -78,6 +123,7 @@ $(document).ready(function() {
         },
         disconnected: function() {
             $('#status').text("Disconnected.");
+            ingame = false;
         },
         error: function(err) {
             $('#status').text("Error: " + err);
@@ -112,7 +158,7 @@ $(document).ready(function() {
     $('#await-opponent').hide();
     $('#game').hide();
 
-    init_hexgrid();
-    $('#game').show();
-    $('#lobby').hide();
+//    init_hexgrid();
+//    $('#game').show();
+//    $('#lobby').hide();
 });

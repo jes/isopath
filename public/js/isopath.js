@@ -98,6 +98,15 @@ Isopath.prototype.is_tile = function(tile) {
     return this.all_tiles.indexOf(tile) != -1;
 };
 
+// return 'white', 'black', or '' depending on what piece (if any) is on this tile
+Isopath.prototype.piece_at = function(tile) {
+    if (this.board["white"].indexOf(tile) != -1)
+        return 'white';
+    if (this.board["black"].indexOf(tile) != -1)
+        return 'black';
+    return '';
+};
+
 Isopath.prototype.playMove = function(move) {
     if (move.length != 2)
         throw "move must have 2 components";
@@ -106,6 +115,9 @@ Isopath.prototype.playMove = function(move) {
     // can't walk up to an enemy and then capture it in just one turn
 
     // TODO: invalid moves shouldn't get partially-applied
+
+    if (move[0][0] == move[1][0])
+        throw "can't play two halfmoves of the same type";
 
     for (var i = 0; i < 2; i++) {
         var movetype = move[i][0];
