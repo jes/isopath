@@ -71,3 +71,12 @@
 .lab_item:nth-child(40), .lab_item:nth-child(45) {
     visibility: hidden;
 }
+
+/* styles to show depth */
+.hexagon-in1#height1, .hexagon2#height1 {
+    border: solid 2px black;
+}
+
+.hexagon-in1#height2, .hexagon2#height2 {
+    border: solid 4px black;
+}

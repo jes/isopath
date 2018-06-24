@@ -54,9 +54,42 @@ $(document).ready(function() {
                 }
             }
 
+            style_hexes();
+
             if (move.length == 2) {
                 ws.playMove(move);
+                style_hexes();
             }
+        }
+    }
+
+    function style_hexes() {
+        for (var tile in tile_to_hex) {
+            var idx = tile_to_hex[tile];
+            var piece = ws.isopath.piece_at(tile);
+            var height = ws.isopath.board[tile];
+
+            // update state for completed halfmove
+            if (move.length == 1) {
+                if (move[0][0] == 'capture' && move[0][1] == tile)
+                    piece = '';
+                if (move[0][0] == 'brick' && move[0][1] == tile)
+                    height--;
+                if (move[0][0] == 'brick' && move[0][2] == tile)
+                    height++;
+                if (move[0][0] == 'piece' && move[0][1] == tile)
+                    piece = '';
+                if (move[0][0] == 'piece' && move[0][2] == tile)
+                    piece = ourcolour;
+            }
+
+            // update state for partial halfmove
+            if (clickmode == 'piece' && movefrom == tile)
+                piece = '';
+            if (clickmode == 'brick' && movefrom == tile)
+                height--;
+
+            $('#hex-' + idx).css('background-image', 'url(/img/height' + height + piece + '.png');
         }
     }
 
@@ -74,6 +107,8 @@ $(document).ready(function() {
                 clicked_on_hex(t);
             });
         }
+
+        style_hexes();
     }
 
     ws = new IsopathWS({
@@ -101,7 +136,7 @@ $(document).ready(function() {
             ready();
         },
         movePlayed: function(player, move) {
-            // TODO: redraw grid
+            style_hexes();
             ready();
         },
         usToMove: function() {
@@ -156,7 +191,7 @@ $(document).ready(function() {
     $('#await-opponent').hide();
     $('#game').hide();
 
-//    init_hexgrid();
-//    $('#game').show();
-//    $('#lobby').hide();
+    /*init_hexgrid();
+    $('#game').show();
+    $('#lobby').hide();*/
 });
