@@ -1,4 +1,9 @@
-/* interaction between isopath.js and the remote websocket */
+/* handle an isopath.js game and a remote websocket
+ *
+ * ideally this module is not dependent on anything in the browser (i.e. alert, window, etc.)
+ * and is therefore suitable for use in nodejs or something
+ */
+
 function IsopathWS(opts) {
     this.opts = opts;
     this.isopath = new Isopath();
@@ -16,6 +21,15 @@ IsopathWS.prototype.endGame = function() {
     this.ws.send(JSON.stringify({'op':'end-game','game':this.gameid}));
 };
 
+IsopathWS.prototype.playMove = function(move) {
+    this.isopath.playMove(move);
+    this.ws.send(JSON.stringify({'op':'play-move','game':this.gameid,'move':move,'board':this.isopath.board(),'history':this.isopath.movehistory()}));
+};
+
+IsopathWS.prototype.ping = function() {
+    this.ws.send(JSON.stringify({'op':'ping'}));
+};
+
 IsopathWS.prototype.connect = function() {
     console.log(this.opts.ws);
     var ws = new WebSocket(this.opts.ws);
@@ -30,15 +44,13 @@ IsopathWS.prototype.connect = function() {
         _isothis.opts.disconnected();
     };
     ws.onerror = function(e) {
-        _isothis.opts.websocketError();
+        _isothis.opts.error("Unknown websocket error");
     };
     ws.onmessage = function(e) {
         console.log(e.data);
 
         msg = JSON.parse(e.data);
 
-        // TODO: do we need to pay attention to the game id we're given,
-        // even if we only support one game?
         if (msg.op == 'new-game') {
             _isothis.opts.awaitingOpponent(msg.game);
             _isothis.gameid = msg.game;
@@ -53,9 +65,17 @@ IsopathWS.prototype.connect = function() {
                 _isothis.opts.opponentToMove();
             }
         } else if (msg.op == 'play-move') {
+            _isothis.isopath.playMove(msg.move);
+            _isothis.opts.movePlayed(_isothis.player, msg.move);
+            if (_isothis.isopath.curplayer == _isothis.player) {
+                _isothis.opts.usToMove();
+            } else {
+                _isothis.opts.error("SERVER TOLD US ABOUT OUR OWN MOVE!? OR WE'RE OUT OF SYNC ON WHOSE TURN IT IS");
+            }
         } else if (msg.op == 'disconnected') {
             _isothis.opts.gameEnded('disconnected');
         } else if (msg.op == 'error') {
+            _isothis.opts.error(msg.error);
         }
     };
 };

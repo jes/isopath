@@ -11,6 +11,9 @@ $(document).ready(function() {
         $('#status').text('Ready.');
     }
 
+    function init_hexgrid(player) {
+    }
+
     var ws = new IsopathWS({
         ws: "ws://" + window.location.hostname + ":" + window.location.port + "/ws",
         awaitingOpponent: function(gameid) {
@@ -28,7 +31,7 @@ $(document).ready(function() {
             alert("Joined game. We're " + player);
             $('#await-opponent').hide();
             $('#game').show();
-            initialise_hexgrid();
+            init_hexgrid(player);
             ready();
         },
         movePlayed: function(player, move) {
@@ -49,12 +52,17 @@ $(document).ready(function() {
         disconnected: function() {
             $('#status').text("Disconnected.");
         },
-        websocketError: function() {
-            $('#status').text("Websocket error.");
+        error: function(err) {
+            $('#status').text("Error: " + err);
         },
     });
     ws.connect();
     $('#status').text("Connecting to websocket...");
+
+    // ping every 60s just to keep the websocket open
+    window.setInterval(function() {
+        ws.ping();
+    }, 60000);
 
     $('#new-game').click(function() {
         $('#lobby').hide();
