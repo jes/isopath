@@ -23,7 +23,7 @@ IsopathWS.prototype.endGame = function() {
 
 IsopathWS.prototype.playMove = function(move) {
     this.isopath.playMove(move);
-    this.ws.send(JSON.stringify({'op':'play-move','game':this.gameid,'move':move,'board':this.isopath.board(),'history':this.isopath.movehistory()}));
+    this.ws.send(JSON.stringify({'op':'play-move','game':this.gameid,'move':move,'board':this.isopath.board,'history':this.isopath.moves}));
 };
 
 IsopathWS.prototype.ping = function() {

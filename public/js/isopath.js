@@ -17,6 +17,16 @@ function Isopath() {
         'black':['g1','g2','g3','g4'],
     };
 
+    this.playerlevel = {
+        'white': 2,
+        'black': 0,
+    };
+
+    this.other = {
+        'white': 'black',
+        'black': 'white',
+    };
+
     // build an adjacency matrix of all of the tiles
     this.adjacent = {};
     for (var i = 0; i < this.all_tiles.length; i++) {
@@ -82,8 +92,8 @@ function Isopath() {
     }
     // ...apart from the home rows
     for (var i = 0; i < 4; i++) {
-        this.board[this.homerow["white"][i]] = 2;
-        this.board[this.homerow["black"][i]] = 0;
+        this.board[this.homerow["white"][i]] = this.playerlevel['white'];
+        this.board[this.homerow["black"][i]] = this.playerlevel['black'];
     }
 }
 
@@ -91,24 +101,19 @@ Isopath.prototype.is_tile = function(tile) {
     return this.all_tiles.indexOf(tile) != -1;
 };
 
-Isopath.prototype.board = function() {
-    return this.board;
-};
-
-Isopath.prototype.movehistory = function() {
-    return this.moves;
-};
-
 Isopath.prototype.playMove = function(move) {
     if (move.length != 2)
         throw "move must have 2 components";
 
+    // TODO: if the second halfmove is a capture, swap the order of the halfmoves so that players
+    // can't walk up to an enemy and then capture it in just one turn
+
     // TODO: invalid moves shouldn't get partially-applied
 
     for (var i = 0; i < 2; i++) {
-        var movetype = move[0];
-        var from = move[1];
-        var to = move[2];
+        var movetype = move[i][0];
+        var from = move[i][1];
+        var to = move[i][2];
 
         if (this.is_tile(from) == -1)
             throw "tile " + from + " is not recognised";
@@ -124,12 +129,32 @@ Isopath.prototype.playMove = function(move) {
                 throw "can't build on your own home row";
             this.board[from]--;
             this.board[to]++;
+
         } else if (movetype == 'piece') {
+            if (this.board[this.curplayer].indexOf(from) == -1)
+                throw "can't move a piece you don't have";
+            if (this.board[this.curplayer].indexOf(to) != -1 || this.board[this.other[this.curplayer]].indexOf(from) != -1)
+                throw "can't move to an occupied tile";
+            if (this.board[to] != this.playerlevel[this.curplayer])
+                throw "can't move a piece to a tile of the wrong height";
+            this.board[this.curplayer][this.board[this.curplayer].indexOf(from)] = to;
+
         } else if (movetype == 'capture') {
+            if (this.board[this.other[this.curplayer]].indexOf(from) == -1)
+                throw "can't capture a piece that isn't there";
+            var adjacent_men = 0;
+            for (var j = 0; j < this.adjacent[from]; j++) {
+                if (this.board[this.curplayer].indexOf(this.adjacent[from][j]) != -1)
+                    adjacent_men++;
+            }
+            if (adjacent_men < 2)
+                throw "can't capture without 2 pieces threatening";
+            this.board[this.other[this.curplayer]].splice(this.board[this.other[this.curplayer]].indexOf(from), 1);
+
         } else {
             throw "don't recognise move type " + movetype;
         }
     }
 
-    this.curplayer = (this.curplayer == 'white' ? 'black' : 'white');
+    this.curplayer = this.other[this.curplayer];
 };
