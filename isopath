@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 
+use List::Util qw(first);
 use Mojolicious::Lite;
 use Mojo::JSON qw(encode_json decode_json);
 use Try::Tiny;
@@ -62,7 +63,7 @@ websocket '/ws' => sub {
                 die "isopath-error: don't recognise game id '$gameid'\n"
                     unless $clients_for_gameid{$gameid};
 
-                $_->send($msg) for @{ $clients_for_gameid{$gameid} };
+                $_->send($msg_str) for @{ $clients_for_gameid{$gameid} };
                 end_game($gameid);
 
             } elsif ($msg->{op} eq 'join-game') {
@@ -86,8 +87,8 @@ websocket '/ws' => sub {
                 die "isopath-error: don't recognise game id '$gameid'\n"
                     unless $clients_for_gameid{$gameid} && (@{ $clients_for_gameid{$gameid} } == 2);
 
-                my $opponent = grep { $_ ne $self } @{ $clients_for_gameid{$gameid} };
-                $opponent->send($msg);
+                my $opponent = first { $_ ne $self } @{ $clients_for_gameid{$gameid} };
+                $opponent->send($msg_str);
 
             } elsif ($msg->{op} eq 'ping') {
                 $self->send(encode_json({op => 'pong'}));
@@ -107,7 +108,7 @@ websocket '/ws' => sub {
 
     $self->on(finish => sub {
         for my $gameid (@{ $gameids_for_client{$self} }) {
-            my $opponent = grep { $_ ne $self } @{ $clients_for_gameid{$gameid} };
+            my $opponent = first { $_ ne $self } @{ $clients_for_gameid{$gameid} };
             $opponent->send(encode_json({op => 'disconnected', game => $gameid})) if $opponent;
             end_game($gameid);
         }
