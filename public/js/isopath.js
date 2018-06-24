@@ -26,7 +26,7 @@ function Isopath() {
         'black': 'white',
     };
 
-    // build an adjacency matrix of all of the tiles
+    // build an adjacency list of all of the tiles
     this.adjacent = {};
     for (var i = 0; i < this.all_tiles.length; i++) {
         var tile = this.all_tiles[i];
@@ -140,20 +140,20 @@ Isopath.prototype.playMove = function(move) {
             this.board[to]++;
 
         } else if (movetype == 'piece') {
-            if (this.board[this.curplayer].indexOf(from) == -1)
+            if (this.piece_at(from) != this.curplayer)
                 throw "can't move a piece you don't have";
-            if (this.board[this.curplayer].indexOf(to) != -1 || this.board[this.other[this.curplayer]].indexOf(from) != -1)
+            if (this.piece_at(to) != '')
                 throw "can't move to an occupied tile";
             if (this.board[to] != this.playerlevel[this.curplayer])
                 throw "can't move a piece to a tile of the wrong height";
             this.board[this.curplayer][this.board[this.curplayer].indexOf(from)] = to;
 
         } else if (movetype == 'capture') {
-            if (this.board[this.other[this.curplayer]].indexOf(from) == -1)
-                throw "can't capture a piece that isn't there";
+            if (this.piece_at(from) != this.other[this.curplayer])
+                throw "can't capture anything other than an enemy";
             var adjacent_men = 0;
-            for (var j = 0; j < this.adjacent[from]; j++) {
-                if (this.board[this.curplayer].indexOf(this.adjacent[from][j]) != -1)
+            for (var j = 0; j < this.adjacent[from].length; j++) {
+                if (this.piece_at(this.adjacent[from][j]) == this.curplayer)
                     adjacent_men++;
             }
             if (adjacent_men < 2)
