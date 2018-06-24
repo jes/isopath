@@ -165,5 +165,6 @@ Isopath.prototype.playMove = function(move) {
         }
     }
 
+    this.moves.push(move);
     this.curplayer = this.other[this.curplayer];
 };

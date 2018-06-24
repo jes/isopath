@@ -54,16 +54,16 @@ $(document).ready(function() {
                 }
             }
 
-            style_hexes();
+            redraw();
 
             if (move.length == 2) {
                 ws.playMove(move);
-                style_hexes();
+                redraw();
             }
         }
     }
 
-    function style_hexes() {
+    function redraw() {
         for (var tile in tile_to_hex) {
             var idx = tile_to_hex[tile];
             var piece = ws.isopath.piece_at(tile);
@@ -91,6 +91,28 @@ $(document).ready(function() {
 
             $('#hex-' + idx).css('background-image', 'url(/img/height' + height + piece + '.png');
         }
+
+        var moves = '';
+        for (var i = 0; i < ws.isopath.moves.length; i++) {
+            let move = ws.isopath.moves[i];
+            if (i%2 == 0)
+                moves += "<b>" + Math.round((i+1)/2) + ".</b>";
+            for (var j = 0; j < move.length; j++) {
+                var type = move[j][0];
+                var from = move[j][1];
+                var to = move[j][2];
+                if (type == 'brick')
+                    moves += "&nbsp;B" + from + to;
+                if (type == 'piece')
+                    moves += "&nbsp;P" + from + to;
+                if (type == 'capture')
+                    moves += "&nbsp;C" + from;
+            }
+            if (i%2 == 0)
+            moves += ",";
+            moves += " ";
+        }
+        $('#movehistory').html(moves);
     }
 
     function init_hexgrid(player) {
@@ -108,7 +130,7 @@ $(document).ready(function() {
             });
         }
 
-        style_hexes();
+        redraw();
     }
 
     ws = new IsopathWS({
@@ -136,7 +158,7 @@ $(document).ready(function() {
             ready();
         },
         movePlayed: function(player, move) {
-            style_hexes();
+            redraw();
             ready();
         },
         usToMove: function() {

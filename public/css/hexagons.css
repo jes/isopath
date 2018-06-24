@@ -50,6 +50,7 @@
 }
 
 .hexagon-in2:hover {
+    /* TODO: make this work with the background-images */
     background-color: #bbb;
 }
 

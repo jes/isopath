@@ -33,6 +33,7 @@
         <div id="gamestate">
             You are playing as <b><span id="yourcolour">white</span></b>.<br>
             It is <b><span id="whoseturn">your</span></b> turn.<br>
+            <div id="movehistory"></div>
         </div>
     </div>
 
