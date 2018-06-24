@@ -30,8 +30,13 @@
 
     <div id="game">
         <div id="hexgrid"></div>
+        <div id="gamestate">
+            You are playing as <b><span id="yourcolour">white</span></b>.<br>
+            It is <b><span id="whoseturn">your</span></b> turn.<br>
+        </div>
     </div>
 
+    <div style="clear: both"></div>
     <div id="footer">
         <hr>
         By <a href="https://incoherency.co.uk/">James Stanley</a>.

@@ -55,6 +55,7 @@
 
 #hexgrid {
     width: 610px;
+    float: left;
 }
 
 .lab_item:nth-child(13n+1) {
