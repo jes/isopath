@@ -1,8 +1,5 @@
 /* ui */
 $(document).ready(function() {
-    // TODO: when they load the page with a gameid in the fragment, try to join that game straight away
-
-
     // TODO: when we're black, invert the labelling vertically?
     var tile_to_hex = {
                     a1:41, a2:42, a3:43, a4:44,
@@ -21,9 +18,25 @@ $(document).ready(function() {
     var opponentcolour;
     var move = [];
     var clickmode = '';
+    var connected = false;
+    var to_join;
 
     function ready() {
         $('#status').text('Ready.');
+    }
+
+    function join_game(gameid) {
+        if (connected) {
+            join_game_now(gameid);
+        } else {
+            to_join = gameid;
+        }
+    }
+
+    function join_game_now(gameid) {
+        $('#lobby').hide();
+        $('#status').text("Waiting for websocket server...");
+        ws.joinGame(gameid);
     }
 
     function clicked_on_hex(tile) {
@@ -136,7 +149,6 @@ $(document).ready(function() {
     ws = new IsopathWS({
         ws: "ws://" + window.location.hostname + ":" + window.location.port + "/ws",
         awaitingOpponent: function(gameid) {
-            alert("New game, id = " + gameid);
             $('#opponent-link').attr('href', window.location + '#join-' + gameid);
             $('#opponent-link').text(window.location + '#join-' + gameid);
             $('#await-opponent').show();
@@ -174,11 +186,16 @@ $(document).ready(function() {
             ready();
         },
         connected: function() {
+            connected = true;
+            if (to_join) {
+                join_game_now(to_join);
+            }
             ready();
         },
         disconnected: function() {
             $('#status').text("Disconnected.");
             ingame = false;
+            connected = false;
         },
         error: function(err) {
             $('#status').text("Error: " + err);
@@ -199,9 +216,7 @@ $(document).ready(function() {
     });
 
     $('#join-game').click(function() {
-        $('#lobby').hide();
-        $('#status').text("Waiting for websocket server...");
-        ws.joinGame($('#gameid').val());
+        join_game($('#gameid').val());
     });
 
     $('#await-opponent-cancel').click(function() {
@@ -212,6 +227,12 @@ $(document).ready(function() {
 
     $('#await-opponent').hide();
     $('#game').hide();
+
+    // join a game straight away if an id is specified in the fragment
+    var match = window.location.hash.match(/#join-(.*)/);
+    if (match) {
+        join_game(match[1]);
+    }
 
     /*init_hexgrid();
     $('#game').show();
