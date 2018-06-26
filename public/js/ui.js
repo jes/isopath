@@ -71,12 +71,11 @@ $(document).ready(function() {
                 }
             }
 
-            redraw();
-
             if (move.length == 2) {
                 ws.playMove(move);
-                redraw();
+                move = [];
             }
+            redraw();
         }
     }
 
