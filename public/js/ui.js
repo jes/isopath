@@ -40,6 +40,8 @@ $(document).ready(function() {
     }
 
     function clicked_on_hex(tile) {
+        $('#illegal-move').text('');
+
         if (ingame && ourturn) {
             var this_tile_has = ws.isopath.piece_at(tile);
             if (move.length > 0 && move[0][0] == 'piece' && move[0][1] == tile)
@@ -75,7 +77,7 @@ $(document).ready(function() {
                 try {
                     ws.playMove(move);
                 } catch(e) {
-                    alert(e);
+                    $('#illegal-move').text(e);
                 };
                 clickmode = '';
                 move = [];
