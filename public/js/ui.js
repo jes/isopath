@@ -72,7 +72,12 @@ $(document).ready(function() {
             }
 
             if (move.length == 2) {
-                ws.playMove(move);
+                try {
+                    ws.playMove(move);
+                } catch(e) {
+                    alert(e);
+                };
+                clickmode = '';
                 move = [];
             }
             redraw();
