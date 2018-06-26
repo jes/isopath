@@ -75,4 +75,9 @@ $ua->websocket($websocket_url, sub {
     });
 });
 
+Mojo::IOLoop->recurring(60 => sub {
+    return if !$websocket;
+    $websocket->send('{"op":"ping"}');
+});
+
 Mojo::IOLoop->start;
