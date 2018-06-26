@@ -99,10 +99,12 @@ Isopath.prototype.is_tile = function(tile) {
 };
 
 // return 'white', 'black', or '' depending on what piece (if any) is on this tile
-Isopath.prototype.piece_at = function(tile) {
-    if (this.board["white"].indexOf(tile) != -1)
+Isopath.prototype.piece_at = function(tile, brd) {
+    if (!brd)
+        brd = this.board;
+    if (brd["white"].indexOf(tile) != -1)
         return 'white';
-    if (this.board["black"].indexOf(tile) != -1)
+    if (brd["black"].indexOf(tile) != -1)
         return 'black';
     return '';
 };
@@ -111,13 +113,11 @@ Isopath.prototype.playMove = function(move) {
     if (move.length != 2)
         throw "move must have 2 components";
 
-    // TODO: if the second halfmove is a capture, swap the order of the halfmoves so that players
-    // can't walk up to an enemy and then capture it in just one turn
-
-    // TODO: invalid moves shouldn't get partially-applied
-
     if (move[0][0] == move[1][0])
         throw "can't play two halfmoves of the same type";
+
+    // XXX: is there a bettery way to deep-copy?
+    var newboard = JSON.parse(JSON.stringify(this.board));
 
     for (var i = 0; i < 2; i++) {
         var movetype = move[i][0];
@@ -130,41 +130,46 @@ Isopath.prototype.playMove = function(move) {
             throw "tile " + to + " is not recognised";
 
         if (movetype == 'brick') {
-            if (this.board[from] == 0)
+            if (newboard[from] == 0)
                 throw "can't move a brick from an empty tile";
-            if (this.board[to] == 2)
+            if (newboard[to] == 2)
                 throw "can't move a brick to a full tile";
             if (this.homerow[this.curplayer].indexOf(from) != -1 || this.homerow[this.curplayer].indexOf(to) != -1)
                 throw "can't build on your own home row";
-            this.board[from]--;
-            this.board[to]++;
+            newboard[from]--;
+            newboard[to]++;
 
         } else if (movetype == 'piece') {
-            if (this.piece_at(from) != this.curplayer)
+            if (this.piece_at(from, newboard) != this.curplayer)
                 throw "can't move a piece you don't have";
-            if (this.piece_at(to) != '')
+            if (this.piece_at(to, newboard) != '')
                 throw "can't move to an occupied tile";
-            if (this.board[to] != this.playerlevel[this.curplayer])
+            if (newboard[to] != this.playerlevel[this.curplayer])
                 throw "can't move a piece to a tile of the wrong height";
-            this.board[this.curplayer][this.board[this.curplayer].indexOf(from)] = to;
+            newboard[this.curplayer][newboard[this.curplayer].indexOf(from)] = to;
 
         } else if (movetype == 'capture') {
-            if (this.piece_at(from) != this.other[this.curplayer])
+            if (this.piece_at(from, newboard) != this.other[this.curplayer])
                 throw "can't capture anything other than an enemy";
             var adjacent_men = 0;
             for (var j = 0; j < this.adjacent[from].length; j++) {
-                if (this.piece_at(this.adjacent[from][j]) == this.curplayer)
+                // check where curplayer's men were on this.board (instead of newboard)
+                // because the piece must have been capturable at the start of this turn,
+                // i.e. you can't walk up to an enemy and capture him all in one turn
+                if (this.piece_at(this.adjacent[from][j], this.board) == this.curplayer)
                     adjacent_men++;
             }
             if (adjacent_men < 2)
                 throw "can't capture without 2 pieces threatening";
-            this.board[this.other[this.curplayer]].splice(this.board[this.other[this.curplayer]].indexOf(from), 1);
+            newboard[this.other[this.curplayer]].splice(newboard[this.other[this.curplayer]].indexOf(from), 1);
 
         } else {
             throw "don't recognise move type " + movetype;
         }
     }
 
+    // didn't throw any exceptions, so let's commit to the move:
+    this.board = newboard;
     this.moves.push(move);
     this.curplayer = this.other[this.curplayer];
 };
