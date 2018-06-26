@@ -110,22 +110,46 @@ $(document).ready(function() {
             let move = ws.isopath.moves[i];
             if (i%2 == 0)
                 moves += "<b>" + Math.round((i+1)/2) + ".</b>";
-            for (var j = 0; j < move.length; j++) {
-                var type = move[j][0];
-                var from = move[j][1];
-                var to = move[j][2];
-                if (type == 'brick')
-                    moves += "&nbsp;B" + from + to;
-                if (type == 'piece')
-                    moves += "&nbsp;P" + from + to;
-                if (type == 'capture')
-                    moves += "&nbsp;C" + from;
-            }
+            moves += stringify_move(move, "&nbsp;");
             if (i%2 == 0)
-            moves += ",";
+                moves += ",";
             moves += " ";
         }
         $('#movehistory').html(moves);
+
+        var partialmove = '';
+        if (ingame && ourturn) {
+            partialmove = stringify_move(move, " ");
+            if (clickmode == 'brick') {
+                partialmove += ' ' + 'B' + movefrom + '..';
+            } else if (clickmode == 'piece') {
+                partialmove += ' ' + 'P' + movefrom + '..';
+            }
+        }
+        $('#partial-move').text(partialmove);
+    }
+
+    function reset_move() {
+        move = [];
+        clickmode = '';
+        redraw();
+    }
+
+    function stringify_move(x, space) {
+        var s = '';
+        for (var j = 0; j < x.length; j++) {
+            var type = x[j][0];
+            var from = x[j][1];
+            var to = x[j][2];
+            if (type == 'brick')
+                s += space + "B" + from + to;
+            if (type == 'piece')
+                s += space + "P" + from + to;
+            if (type == 'capture')
+                s += space + "C" + from;
+        }
+
+        return s;
     }
 
     function init_hexgrid(player) {
@@ -176,6 +200,7 @@ $(document).ready(function() {
         usToMove: function() {
             $('#whoseturn').text('your');
             ourturn = true;
+            $('#reset-move').show();
             clickmode = '';
             move = [];
             ready();
@@ -183,6 +208,7 @@ $(document).ready(function() {
         opponentToMove: function() {
             $('#whoseturn').text("your opponent's");
             ourturn = false;
+            $('#reset-move').hide();
             ready();
         },
         connected: function() {
@@ -223,6 +249,10 @@ $(document).ready(function() {
         $('#await-opponent').hide();
         $('#lobby').show();
         ws.endGame();
+    });
+
+    $('#reset-move').click(function() {
+        reset_move();
     });
 
     $('#await-opponent').hide();
