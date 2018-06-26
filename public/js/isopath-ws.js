@@ -67,8 +67,13 @@ IsopathWS.prototype.connect = function() {
                 _isothis.opts.opponentToMove();
             }
         } else if (msg.op == 'play-move') {
-            // TODO: handle exceptions from playMove
-            _isothis.isopath.playMove(msg.move);
+            try {
+                _isothis.isopath.playMove(msg.move);
+            } catch(e) {
+                // TODO: say what the attempted move was
+                _isothis.isopath.gameEnded("Invalid move from opponent: " + e);
+                return;
+            };
             _isothis.opts.movePlayed(_isothis.player, msg.move);
             if (_isothis.isopath.curplayer == _isothis.player) {
                 _isothis.opts.usToMove();
