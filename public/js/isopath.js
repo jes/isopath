@@ -124,10 +124,10 @@ Isopath.prototype.playMove = function(move) {
         var from = move[i][1];
         var to = move[i][2];
 
-        if (this.is_tile(from) == -1)
+        if (!this.is_tile(from))
             throw "tile " + from + " is not recognised";
-        if (movetype != 'capture' && this.is_tile(to) == -1)
-            throw "tile " + from + " is not recognised";
+        if (movetype != 'capture' && !this.is_tile(to))
+            throw "tile " + to + " is not recognised";
 
         if (movetype == 'brick') {
             if (this.board[from] == 0)
