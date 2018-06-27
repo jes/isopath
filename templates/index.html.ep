@@ -16,7 +16,9 @@
     </div>
 
     <div id="lobby">
-        <button id="new-game">New game</button><br>
+        <button id="new-game">New websocket game</button><br>
+        <button id="new-local-game">New local game with 2 humans</button><br>
+        <button id="new-ai-game">New local game against AI</button><br>
         <!-- todo: for "new-game", pick whether we want to be white or black -->
         <input id="gameid">
         <button id="join-game">Join game</button>
