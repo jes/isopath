@@ -108,7 +108,6 @@ $(document).ready(function() {
             },
             connected: function() {
                 connected = true;
-                localgame = false;
                 connected_cb(ws);
                 ready();
             },
@@ -174,6 +173,7 @@ $(document).ready(function() {
     });
 
     $('#new-game').click(function() {
+        localgame = false;
         $('#lobby').hide();
         $('#status').show();
         $('#status').text("Waiting for websocket server...");
@@ -191,6 +191,16 @@ $(document).ready(function() {
     $('#reset-move').click(function() {
         if (view)
             view.reset_move();
+    });
+
+    $('#end-game').click(function() {
+        $('#gamestate').hide();
+        $('#lobby').show();
+        ingame = false;
+        if (connected) {
+            connected = false;
+            ws.disconnect();
+        }
     });
 
     // draw a dummy game board

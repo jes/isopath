@@ -32,6 +32,11 @@ IsopathWS.prototype.ping = function() {
     this.ws.send(JSON.stringify({'op':'ping'}));
 };
 
+IsopathWS.prototype.disconnect = function() {
+    this.ws.onclose = function() {};
+    this.ws.close();
+};
+
 IsopathWS.prototype.connect = function() {
     var ws = new WebSocket(this.opts.ws);
     this.ws = ws;
