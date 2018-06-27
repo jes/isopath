@@ -128,6 +128,8 @@ Isopath.prototype.playMove = function(move) {
             throw "place " + from + " is not recognised";
         if (movetype != 'capture' && !this.is_place(to))
             throw "place " + to + " is not recognised";
+        if (movetype != 'capture' && from == to)
+            throw "can't move something from a tile to the same tile";
 
         if (movetype == 'tile') {
             if (newboard[from] == 0)
