@@ -9,20 +9,50 @@
 
 <div class="container">
     <div id="nav">
-        <h1>Isopath</h1>
-        <a id="about" href="#">About</a>
+        <div style="float:left">
+            <h1>Isopath</h1>
+        </div>
+        <div style="float:right; padding-top: 20px">
+            <a id="about" href="#" data-toggle="modal" data-target="#aboutModal">About</a>
+        </div>
+        <div style="clear:both"></div>
         <hr>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="aboutModalLabel">About</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Isopath is a game designed by YouTube user <a href="https://www.youtube.com/user/pocket83">pocket83</a>. This
+            web page implements the game in Javascript, playable either locally or over a websocket connection. It is
+            open source <a href="https://github.com/jes/isopath">on github</a>.</p>
+            <p>Watch <a href="https://www.youtube.com/watch?v=Wz6q03b8R6U&t=15m45s">pocket83's original video</a> to learn more about
+            the game (rules begin at 15:45).</p>
+            <p>He also released rule sheets:
+            <a target="_blank" href="/img/rule_sheet_1.png">sheet 1</a>, <a target="_blank" href="/img/rule_sheet_2.png">sheet 2</a>, <a target="_blank" href="/img/rule_sheet_3.png">sheet 3</a>.</p>
+            <p>Please email <a href="mailto:james@incoherency.co.uk">james@incoherency.co.uk</a> if you want to get in touch.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div id="game">
         <div id="hexgrid"></div>
 
         <div id="lobby">
-            <!-- todo: for "new-(.*)game", pick whether we want to be white or black -->
             <button class="btn btn-primary" id="new-game">New websocket game</button><br><br>
-            <button class="btn btn-primary" id="new-local-game">New local game with 2 humans</button><br><br>
-            <button class="btn btn-primary" disabled id="new-ai-game">New local game against AI</button>
+            <button class="btn btn-primary" id="new-local-game">New local game</button><br><br>
+            <!--<button class="btn btn-primary" id="new-ai-game">New local game against AI</button>-->
         </div>
 
         <div id="await-opponent">
@@ -45,7 +75,8 @@
     <div style="clear: both"></div>
     <div id="footer">
         <hr>
-        By <a href="https://incoherency.co.uk/">James Stanley</a>.
+        Game invented by <a href="https://youtube.com/user/pocket83">pocket83</a>.<br>
+        This implementation by <a href="https://incoherency.co.uk/">James Stanley</a>.
     </div>
 </div>
 
