@@ -58,7 +58,7 @@
         <div id="await-opponent">
             Send this link to your opponent: <a id="opponent-link" href="#" target="_blank"></a>.<br>
             Awaiting opponent...<br>
-            <button class="btn btn-primary" id="await-opponent-cancel">Cancel</button>
+            <button class="btn btn-danger" id="await-opponent-cancel">Cancel</button>
         </div>
 
         <div id="gamestate">
