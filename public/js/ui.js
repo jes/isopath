@@ -54,7 +54,7 @@ $(document).ready(function() {
             gameStarted: function(player) {
                 $('#yourcolour').text(player);
                 $('#await-opponent').hide();
-                $('#game').show();
+                $('#gamestate').show();
                 view = new IsopathView({
                     isopath: ws.isopath,
                     redraw: function() {
@@ -109,7 +109,7 @@ $(document).ready(function() {
             connected: function() {
                 connected = true;
                 localgame = false;
-                connected_cb();
+                connected_cb(ws);
                 ready();
             },
             disconnected: function() {
@@ -134,7 +134,7 @@ $(document).ready(function() {
 
     $('#new-local-game').click(function() {
         $('#lobby').hide();
-        $('#game').show();
+        $('#gamestate').show();
         localgame = true;
 
         var isopath = new Isopath();
@@ -199,8 +199,18 @@ $(document).ready(function() {
             view.reset_move();
     });
 
+    // draw a dummy game board
+    view = new IsopathView({
+        isopath: new Isopath(),
+        can_click: function() {false},
+        clicked: function() {},
+        partial_move: function() {},
+        move_history: function() {},
+    });
+    view.init_hexgrid('#hexgrid');
+
     $('#await-opponent').hide();
-    $('#game').hide();
+    $('#gamestate').hide();
 
     // join a websocket game straight away if an id is specified in the fragment
     var match = window.location.hash.match(/#join-(.*)/);

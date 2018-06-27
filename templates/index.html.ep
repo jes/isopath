@@ -15,23 +15,25 @@
         <hr>
     </div>
 
-    <div id="lobby">
-        <!-- todo: for "new-(.*)game", pick whether we want to be white or black -->
-        <button id="new-game">New websocket game</button><br>
-        <input id="gameid">
-        <button id="join-game">Join websocket game</button><br>
-        <button id="new-local-game">New local game with 2 humans</button><br>
-        <button id="new-ai-game">New local game against AI</button><br>
-    </div>
-
-    <div id="await-opponent">
-        Send this link to your opponent: <a id="opponent-link" href="#" target="_blank"></a>.<br>
-        Awaiting opponent...<br>
-        <button id="await-opponent-cancel">Cancel</button>
-    </div>
 
     <div id="game">
         <div id="hexgrid"></div>
+
+        <div id="lobby">
+            <!-- todo: for "new-(.*)game", pick whether we want to be white or black -->
+            <button id="new-game">New websocket game</button><br>
+            <input id="gameid">
+            <button id="join-game">Join websocket game</button><br>
+            <button id="new-local-game">New local game with 2 humans</button><br>
+            <button id="new-ai-game">New local game against AI</button><br>
+        </div>
+
+        <div id="await-opponent">
+            Send this link to your opponent: <a id="opponent-link" href="#" target="_blank"></a>.<br>
+            Awaiting opponent...<br>
+            <button id="await-opponent-cancel">Cancel</button>
+        </div>
+
         <div id="gamestate">
             <div id="you-are">You <span id="are">are</span> playing as <b><span id="yourcolour">white</span></b>.<br></div>
             <div id="whoseturn-div">It is <b><span id="whoseturn">your</span></b> turn.<br></div>
