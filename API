@@ -66,16 +66,16 @@ messages to client:
       {"op":resume-game,"game":game-id}
 
 serialised-board
-    This needs to represent the height of bricks at each tile, and the locations of each player's men
-    Each tile is identified by a letter and a number. a1 is bottom left from white's perspective. The leftmost tile
-    on each row, from white's perspective, is number 1. Therefore the top-right-most tile is g4.
+    This needs to represent the height of tiles at each location, and the locations of each player's men
+    Each location is identified by a letter and a number. a1 is bottom left from white's perspective. The leftmost location
+    on each row, from white's perspective, is number 1. Therefore the top-right-most location is g4.
     {"a1":2,"a2":2,"a3":2,"a4":2,"b1":1, ..., "white":["a1","a2","a3","a4"],"black":["g1","g2","g3","g4"]}
 serialised-move
-    This needs to tell where we moved a brick from and to, where we moved a piece from and to, and where (if) we captured
+    This needs to tell where we moved a tile from and to, where we moved a piece from and to, and where (if) we captured
     a piece. It's a 2-element array. Each element contains a move half.
-    Movement codes are [TYPE,FROM,TO] where FROM and TO are tile names (e.g. "a1") and TYPE is either "piece" or "brick"
+    Movement codes are [TYPE,FROM,TO] where FROM and TO are location names (e.g. "a1") and TYPE is either "piece" or "tile"
     or ["capture",TILE]
-    [["brick","b2","b1"],["piece","a1","b1"]]
+    [["tile","b2","b1"],["piece","a1","b1"]]
     [["capture","d3"],["piece","c3","d3"]]
 move-history
     This is an array of all the moves of the game, starting with the opening move by white.

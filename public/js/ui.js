@@ -1,7 +1,7 @@
 /* ui */
 $(document).ready(function() {
     // TODO: when we're black, invert the labelling vertically?
-    var tile_to_hex = {
+    var place_to_hex = {
                     a1:41, a2:42, a3:43, a4:44,
                 b1:34, b2:35, b3:36, b4:37, b5:38,
             c1:27, c2:28, c3:29, c4:30, c5:31, c6:32,
@@ -39,37 +39,37 @@ $(document).ready(function() {
         ws.joinGame(gameid);
     }
 
-    function clicked_on_hex(tile) {
+    function clicked_on_hex(place) {
         $('#illegal-move').text('');
 
         if (ingame && ourturn) {
-            var this_tile_has = ws.isopath.piece_at(tile);
-            if (move.length > 0 && move[0][0] == 'piece' && move[0][1] == tile)
-                this_tile_has = '';
-            if (move.length > 0 && move[0][0] == 'piece' && move[0][2] == tile)
-                this_tile_has = ourcolour;
+            var this_place_has = ws.isopath.piece_at(place);
+            if (move.length > 0 && move[0][0] == 'piece' && move[0][1] == place)
+                this_place_has = '';
+            if (move.length > 0 && move[0][0] == 'piece' && move[0][2] == place)
+                this_place_has = ourcolour;
 
             if (clickmode == 'piece') {
-                if (this_tile_has == '')
-                    move.push(["piece",movefrom,tile]);
+                if (this_place_has == '')
+                    move.push(["piece",movefrom,place]);
                 clickmode = '';
-            } else if (clickmode == 'brick') {
-                if (this_tile_has == '')
-                    move.push(["brick",movefrom,tile]);
+            } else if (clickmode == 'tile') {
+                if (this_place_has == '')
+                    move.push(["tile",movefrom,place]);
                 clickmode = '';
             } else {
                 clickmode = '';
-                if (this_tile_has == opponentcolour) {
+                if (this_place_has == opponentcolour) {
                     // capture
-                    move.push(["capture",tile]);
-                } else if (this_tile_has == ourcolour) {
+                    move.push(["capture",place]);
+                } else if (this_place_has == ourcolour) {
                     // start moving a piece
                     clickmode = 'piece';
-                    movefrom = tile;
+                    movefrom = place;
                 } else {
-                    // start moving a brick
-                    clickmode = 'brick';
-                    movefrom = tile;
+                    // start moving a tile
+                    clickmode = 'tile';
+                    movefrom = place;
                 }
             }
 
@@ -87,29 +87,29 @@ $(document).ready(function() {
     }
 
     function redraw() {
-        for (var tile in tile_to_hex) {
-            var idx = tile_to_hex[tile];
-            var piece = ws.isopath.piece_at(tile);
-            var height = ws.isopath.board[tile];
+        for (var place in place_to_hex) {
+            var idx = place_to_hex[place];
+            var piece = ws.isopath.piece_at(place);
+            var height = ws.isopath.board[place];
 
             // update state for completed halfmove
             if (move.length == 1) {
-                if (move[0][0] == 'capture' && move[0][1] == tile)
+                if (move[0][0] == 'capture' && move[0][1] == place)
                     piece = '';
-                if (move[0][0] == 'brick' && move[0][1] == tile)
+                if (move[0][0] == 'tile' && move[0][1] == place)
                     height--;
-                if (move[0][0] == 'brick' && move[0][2] == tile)
+                if (move[0][0] == 'tile' && move[0][2] == place)
                     height++;
-                if (move[0][0] == 'piece' && move[0][1] == tile)
+                if (move[0][0] == 'piece' && move[0][1] == place)
                     piece = '';
-                if (move[0][0] == 'piece' && move[0][2] == tile)
+                if (move[0][0] == 'piece' && move[0][2] == place)
                     piece = ourcolour;
             }
 
             // update state for partial halfmove
-            if (clickmode == 'piece' && movefrom == tile)
+            if (clickmode == 'piece' && movefrom == place)
                 piece = '';
-            if (clickmode == 'brick' && movefrom == tile)
+            if (clickmode == 'tile' && movefrom == place)
                 height--;
 
             $('#hex-' + idx).css('background-image', 'url(/img/height' + height + piece + '.png');
@@ -130,7 +130,7 @@ $(document).ready(function() {
         var partialmove = '';
         if (ingame && ourturn) {
             partialmove = stringify_move(move, " ");
-            if (clickmode == 'brick') {
+            if (clickmode == 'tile') {
                 partialmove += ' ' + 'B' + movefrom + '..';
             } else if (clickmode == 'piece') {
                 partialmove += ' ' + 'P' + movefrom + '..';
@@ -151,8 +151,8 @@ $(document).ready(function() {
             var type = x[j][0];
             var from = x[j][1];
             var to = x[j][2];
-            if (type == 'brick')
-                s += space + "B" + from + to;
+            if (type == 'tile')
+                s += space + "T" + from + to;
             if (type == 'piece')
                 s += space + "P" + from + to;
             if (type == 'capture')
@@ -164,14 +164,14 @@ $(document).ready(function() {
 
     function init_hexgrid(player) {
         $('#hexgrid').html('');
-        // 37 tiles, plus 8 invisible ones to get the spacing right
+        // 37 places, plus 8 invisible ones to get the spacing right
         for (var i = 0; i < 45; i++) {
             $('<div class="lab_item"><div class="hexagon hexagon2"><div class="hexagon-in1"><div class="hexagon-in2" id="hex-' + (i+1) + '"></div></div></div></div>').appendTo('#hexgrid');
         }
 
-        for (var tile in tile_to_hex) {
-            var idx = tile_to_hex[tile];
-            let t = tile;
+        for (var place in place_to_hex) {
+            var idx = place_to_hex[place];
+            let t = place;
             $('#hex-' + idx).click(function() {
                 clicked_on_hex(t);
             });
