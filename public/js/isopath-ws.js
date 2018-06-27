@@ -48,8 +48,6 @@ IsopathWS.prototype.connect = function() {
         _isothis.opts.error("Unknown websocket error");
     };
     ws.onmessage = function(e) {
-        console.log(e.data);
-
         msg = JSON.parse(e.data);
 
         if (msg.op == 'new-game') {

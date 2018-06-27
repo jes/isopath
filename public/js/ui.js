@@ -79,6 +79,8 @@ $(document).ready(function() {
                 } catch(e) {
                     $('#illegal-move').text(e);
                 };
+                if (ws.isopath.winner())
+                    game_over();
                 clickmode = '';
                 move = [];
             }
@@ -145,6 +147,11 @@ $(document).ready(function() {
         redraw();
     }
 
+    function game_over() {
+        var winner = ws.isopath.winner();
+        alert(winner + " is the winner");
+    }
+
     function stringify_move(x, space) {
         var s = '';
         for (var j = 0; j < x.length; j++) {
@@ -204,6 +211,8 @@ $(document).ready(function() {
             ready();
         },
         movePlayed: function(player, move) {
+            if (ws.isopath.winner())
+                game_over();
             redraw();
             ready();
         },
@@ -273,8 +282,4 @@ $(document).ready(function() {
     if (match) {
         join_game(match[1]);
     }
-
-    /*init_hexgrid();
-    $('#game').show();
-    $('#lobby').hide();*/
 });

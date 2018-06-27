@@ -109,6 +109,16 @@ Isopath.prototype.piece_at = function(place, brd) {
     return '';
 };
 
+Isopath.prototype.winner = function() {
+    for (var i = 0; i < 4; i++) {
+        if (this.piece_at(this.homerow["white"][i] == 'black'))
+            return 'black';
+        if (this.piece_at(this.homerow["black"][i] == 'white'))
+            return 'white';
+    }
+    return false;
+};
+
 Isopath.prototype.playMove = function(move) {
     if (move.length != 2)
         throw "move must have 2 components";
