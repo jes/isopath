@@ -49,7 +49,7 @@ $(document).ready(function() {
             gameEnded: function(reason) {
                 ingame = false;
                 redraw();
-                ready();
+                $('#status').text("Game ended: " + reason);
             },
             gameStarted: function(player) {
                 $('#yourcolour').text(player);
@@ -175,6 +175,7 @@ $(document).ready(function() {
 
     $('#new-game').click(function() {
         $('#lobby').hide();
+        $('#status').show();
         $('#status').text("Waiting for websocket server...");
         connect_websocket(function(ws) {
             ws.newGame('white'); // TODO: we should be able to choose
@@ -204,10 +205,13 @@ $(document).ready(function() {
 
     $('#await-opponent').hide();
     $('#gamestate').hide();
+    $('#status').hide();
 
     // join a websocket game straight away if an id is specified in the fragment
     var match = window.location.hash.match(/#join-(.*)/);
     if (match) {
+        $('#status').show();
+        $('#status').text("Waiting for websocket server...");
         connect_websocket(function(ws) {
             ws.joinGame(match[1]);
             $('#lobby').hide();

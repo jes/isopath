@@ -11,7 +11,6 @@
     <div id="nav">
         <h1>Isopath</h1>
         <a id="about" href="#">About</a>
-        <div class="text-muted" id="status">Loading...</div>
         <hr>
     </div>
 
@@ -21,9 +20,9 @@
 
         <div id="lobby">
             <!-- todo: for "new-(.*)game", pick whether we want to be white or black -->
-            <button class="btn btn-primary" id="new-game">New websocket game</button><br>
-            <button class="btn btn-primary" id="new-local-game">New local game with 2 humans</button><br>
-            <button class="btn btn-primary" disabled id="new-ai-game">New local game against AI</button><br>
+            <button class="btn btn-primary" id="new-game">New websocket game</button><br><br>
+            <button class="btn btn-primary" id="new-local-game">New local game with 2 humans</button><br><br>
+            <button class="btn btn-primary" disabled id="new-ai-game">New local game against AI</button>
         </div>
 
         <div id="await-opponent">
@@ -33,6 +32,7 @@
         </div>
 
         <div id="gamestate">
+            <div class="text-muted" id="status">Loading...</div>
             <div id="you-are">You <span id="are">are</span> playing as <b><span id="yourcolour">white</span></b>.<br></div>
             <div id="whoseturn-div">It is <b><span id="whoseturn">your</span></b> turn.<br></div>
             <div id="gameover">The game is over.<br></div>
