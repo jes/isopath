@@ -181,13 +181,6 @@ $(document).ready(function() {
         });
     });
 
-    $('#join-game').click(function() {
-        connect_websocket(function(ws) {
-            ws.joinGame($('#gameid').val());
-            $('#lobby').hide();
-        });
-    });
-
     $('#await-opponent-cancel').click(function() {
         $('#await-opponent').hide();
         $('#lobby').show();
