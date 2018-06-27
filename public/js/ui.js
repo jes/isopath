@@ -134,6 +134,7 @@ $(document).ready(function() {
 
     $('#new-local-game').click(function() {
         $('#lobby').hide();
+        $('#status').hide();
         $('#gamestate').show();
         localgame = true;
 

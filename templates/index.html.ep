@@ -71,8 +71,8 @@
             <hr>
 
             <span id="partial-move"></span> <button class="btn btn-sm btn-primary" id="reset-move">Reset move</button><br>
+            <button style="margin-top: 5px" class="btn btn-sm btn-danger" id="end-game">Close game</button><br>
             <span style="color:red" id="illegal-move"></span>
-            <button style="margin-top: 5px" class="btn btn-sm btn-danger" id="end-game">Close game</button>
         </div>
     </div>
 
