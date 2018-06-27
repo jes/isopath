@@ -131,7 +131,7 @@ $(document).ready(function() {
         if (ingame && ourturn) {
             partialmove = stringify_move(move, " ");
             if (clickmode == 'tile') {
-                partialmove += ' ' + 'B' + movefrom + '..';
+                partialmove += ' ' + 'T' + movefrom + '..';
             } else if (clickmode == 'piece') {
                 partialmove += ' ' + 'P' + movefrom + '..';
             }
