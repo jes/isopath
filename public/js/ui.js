@@ -41,8 +41,9 @@ $(document).ready(function() {
         ws = new IsopathWS({
             ws: "ws://" + window.location.hostname + ":" + window.location.port + "/ws",
             awaitingOpponent: function(gameid) {
-                $('#opponent-link').attr('href', window.location + '#join-' + gameid);
-                $('#opponent-link').text(window.location + '#join-' + gameid);
+                var url = window.location.origin + window.location.pathname + '#join-' + gameid;
+                $('#opponent-link').attr('href', url);
+                $('#opponent-link').text(url);
                 $('#await-opponent').show();
                 ready();
             },
