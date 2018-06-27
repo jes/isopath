@@ -49,6 +49,7 @@ $chld_out_stream->on(error => sub {
     print STDERR "child stdout: $err\n";
     exit 1;
 });
+$chld_out_stream->timeout(0);
 $chld_out_stream->start;
 
 # connect to the websocket
@@ -66,7 +67,8 @@ $ua->websocket($websocket_url, sub {
     send_lines();
 
     $tx->on(finish => sub {
-        print STDERR "websocket disconnected\n";
+        my ($tx, $code) = @_;
+        print STDERR "websocket disconnected ($code)\n";
         exit 1;
     });
     $tx->on(message => sub {
