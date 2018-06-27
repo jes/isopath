@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+# Connect a websocket to stdin/stdout of a child process
+# Useful for writing isopath AIs without having to deal with websockets
+# jes 2018
 
 use strict;
 use warnings;
