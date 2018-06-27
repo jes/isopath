@@ -32,7 +32,7 @@ IsopathView.prototype.clicked_on_hex = function(place) {
         this_place_has = this.opts.isopath.curplayer;
 
     if (this.clickmode == 'piece') {
-        if (this_place_has == '') {
+        if (this_place_has == '' && place != this.movefrom) {
             this.move.push(["piece",this.movefrom,place]);
             if (this.opts.isopath.homerow[this.opts.isopath.other[this.opts.isopath.curplayer]].indexOf(place) != -1) {
                 // we placed a piece on the enemy's homerow, no need for a second move-half
@@ -41,7 +41,7 @@ IsopathView.prototype.clicked_on_hex = function(place) {
         }
         this.clickmode = '';
     } else if (this.clickmode == 'tile') {
-        if (this_place_has == '')
+        if (this_place_has == '' && place != this.movefrom)
             this.move.push(["tile",this.movefrom,place]);
         this.clickmode = '';
     } else {
@@ -96,6 +96,32 @@ IsopathView.prototype.redraw = function() {
 
         $('#' + this.idprefix + '-hex-' + idx).css('background-image', 'url(/img/height' + height + piece + '.png');
     }
+
+    var moves = '';
+    for (var i = 0; i < this.opts.isopath.moves.length; i++) {
+        let move = this.opts.isopath.moves[i];
+        if (i%2 == 0)
+            moves += "<b>" + Math.round((i+1)/2) + ".</b>";
+        moves += this.stringify_move(move, "&nbsp;");
+        if (i%2 == 0)
+            moves += ",";
+        moves += " ";
+    }
+    var winner = this.opts.isopath.winner();
+    if (winner)
+        moves += " " + winner + "&nbsp;wins.";
+    this.opts.move_history(moves);
+
+    var partialmove = '';
+    if (this.opts.can_click()) {
+        partialmove = this.stringify_move(this.move, " ");
+        if (this.clickmode == 'tile') {
+            partialmove += ' ' + 'T' + this.movefrom + '..';
+        } else if (this.clickmode == 'piece') {
+            partialmove += ' ' + 'P' + this.movefrom + '..';
+        }
+    }
+    this.opts.partial_move(partialmove);
 };
 
 // initialise the hex grid in the named div
@@ -116,5 +142,28 @@ IsopathView.prototype.init_hexgrid = function(el) {
         });
     }
 
+    this.redraw();
+};
+
+IsopathView.prototype.stringify_move = function(x, space) {
+    var s = '';
+    for (var j = 0; j < x.length; j++) {
+        var type = x[j][0];
+        var from = x[j][1];
+        var to = x[j][2];
+        if (type == 'tile')
+            s += space + "T" + from + to;
+        if (type == 'piece')
+            s += space + "P" + from + to;
+        if (type == 'capture')
+            s += space + "C" + from;
+    }
+
+    return s;
+};
+
+IsopathView.prototype.reset_move = function() {
+    this.move = [];
+    this.clickmode = '';
     this.redraw();
 };

@@ -28,32 +28,6 @@ $(document).ready(function() {
     function redraw() {
         view.redraw();
 
-        var moves = '';
-        for (var i = 0; i < ws.isopath.moves.length; i++) {
-            let move = ws.isopath.moves[i];
-            if (i%2 == 0)
-                moves += "<b>" + Math.round((i+1)/2) + ".</b>";
-            moves += stringify_move(move, "&nbsp;");
-            if (i%2 == 0)
-                moves += ",";
-            moves += " ";
-        }
-        var winner = ws.isopath.winner();
-        if (winner)
-            moves += " " + winner + "&nbsp;wins.";
-        $('#movehistory').html(moves);
-
-        var partialmove = '';
-        if (ingame && ourturn) {
-            partialmove = stringify_move(move, " ");
-            if (clickmode == 'tile') {
-                partialmove += ' ' + 'T' + movefrom + '..';
-            } else if (clickmode == 'piece') {
-                partialmove += ' ' + 'P' + movefrom + '..';
-            }
-        }
-        $('#partial-move').text(partialmove);
-
         if (ingame) {
             $('#are').text('are');
             $('#whoseturn-div').show();
@@ -65,32 +39,9 @@ $(document).ready(function() {
         }
     }
 
-    function reset_move() {
-        move = [];
-        clickmode = '';
-        redraw();
-    }
-
     function game_over() {
         redraw();
         ingame = false;
-    }
-
-    function stringify_move(x, space) {
-        var s = '';
-        for (var j = 0; j < x.length; j++) {
-            var type = x[j][0];
-            var from = x[j][1];
-            var to = x[j][2];
-            if (type == 'tile')
-                s += space + "T" + from + to;
-            if (type == 'piece')
-                s += space + "P" + from + to;
-            if (type == 'capture')
-                s += space + "C" + from;
-        }
-
-        return s;
     }
 
     ws = new IsopathWS({
@@ -129,6 +80,12 @@ $(document).ready(function() {
                     };
                     if (ws.isopath.winner())
                         game_over();
+                },
+                move_history: function(html) {
+                    $('#movehistory').html(html);
+                },
+                partial_move: function(text) {
+                    $('#partial-move').text(text);
                 },
             });
             view.init_hexgrid('#hexgrid');
@@ -196,7 +153,8 @@ $(document).ready(function() {
     });
 
     $('#reset-move').click(function() {
-        reset_move();
+        if (view)
+            view.reset_move();
     });
 
     $('#await-opponent').hide();
