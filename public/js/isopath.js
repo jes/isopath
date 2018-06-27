@@ -109,27 +109,27 @@ Isopath.prototype.piece_at = function(place, brd) {
     return '';
 };
 
-Isopath.prototype.winner = function() {
+Isopath.prototype.winner = function(brd) {
     for (var i = 0; i < 4; i++) {
-        if (this.piece_at(this.homerow["white"][i] == 'black'))
+        if (this.piece_at(this.homerow["white"][i],brd) == 'black')
             return 'black';
-        if (this.piece_at(this.homerow["black"][i] == 'white'))
+        if (this.piece_at(this.homerow["black"][i],brd) == 'white')
             return 'white';
     }
     return false;
 };
 
 Isopath.prototype.playMove = function(move) {
-    if (move.length != 2)
-        throw "move must have 2 components";
+    if (move.length > 2)
+        throw "move may never have more than 2 halves";
 
-    if (move[0][0] == move[1][0])
+    if (move.length == 2 && move[0][0] == move[1][0])
         throw "can't play two halfmoves of the same type";
 
-    // XXX: is there a bettery way to deep-copy?
+    // XXX: is there a better way to deep-copy?
     var newboard = JSON.parse(JSON.stringify(this.board));
 
-    for (var i = 0; i < 2; i++) {
+    for (var i = 0; i < move.length; i++) {
         var movetype = move[i][0];
         var from = move[i][1];
         var to = move[i][2];
@@ -179,6 +179,9 @@ Isopath.prototype.playMove = function(move) {
             throw "don't recognise move type " + movetype;
         }
     }
+
+    if (move.length == 1 && !this.winner(newboard))
+        throw "move must have two halves except when the first half wins the game";
 
     // didn't throw any exceptions, so let's commit to the move:
     this.board = newboard;

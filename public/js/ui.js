@@ -42,6 +42,8 @@ $(document).ready(function() {
     function clicked_on_hex(place) {
         $('#illegal-move').text('');
 
+        var movedone = false;
+
         if (ingame && ourturn) {
             var this_place_has = ws.isopath.piece_at(place);
             if (move.length > 0 && move[0][0] == 'piece' && move[0][1] == place)
@@ -50,8 +52,14 @@ $(document).ready(function() {
                 this_place_has = ourcolour;
 
             if (clickmode == 'piece') {
-                if (this_place_has == '')
+                if (this_place_has == '') {
                     move.push(["piece",movefrom,place]);
+                    if ((ourcolour == 'white' && ws.isopath.homerow["black"].indexOf(place) != -1)
+                            || (ourcolour == 'black' && ws.isopath.homerow["white"].indexOf(place) != -1)) {
+                        // we placed a piece on the enemy's homerow, no need for a second move-half
+                        movedone = true;
+                    }
+                }
                 clickmode = '';
             } else if (clickmode == 'tile') {
                 if (this_place_has == '')
@@ -73,7 +81,7 @@ $(document).ready(function() {
                 }
             }
 
-            if (move.length == 2) {
+            if (movedone || move.length == 2) {
                 try {
                     ws.playMove(move);
                 } catch(e) {
@@ -127,6 +135,9 @@ $(document).ready(function() {
                 moves += ",";
             moves += " ";
         }
+        var winner = ws.isopath.winner();
+        if (winner)
+            moves += " " + winner + "&nbsp;wins.";
         $('#movehistory').html(moves);
 
         var partialmove = '';
@@ -139,6 +150,16 @@ $(document).ready(function() {
             }
         }
         $('#partial-move').text(partialmove);
+
+        if (ingame) {
+            $('#are').text('are');
+            $('#whoseturn').show();
+            $('#gameover').hide();
+        } else {
+            $('#are').text('were');
+            $('#whoseturn').hide();
+            $('#gameover').show();
+        }
     }
 
     function reset_move() {
@@ -148,8 +169,8 @@ $(document).ready(function() {
     }
 
     function game_over() {
-        var winner = ws.isopath.winner();
-        alert(winner + " is the winner");
+        redraw();
+        ingame = false;
     }
 
     function stringify_move(x, space) {
@@ -196,8 +217,8 @@ $(document).ready(function() {
             ready();
         },
         gameEnded: function(reason) {
-            alert("End game because of " + reason);
             ingame = false;
+            redraw();
             ready();
         },
         gameStarted: function(player) {
