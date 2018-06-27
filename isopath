@@ -8,7 +8,7 @@ use Mojolicious::Lite;
 use Mojo::JSON qw(encode_json decode_json);
 use Try::Tiny;
 
-plugin 'Config';
+plugin 'Config' if -f 'isopath.conf';
 
 my %clients_for_gameid;
 my %gameids_for_client;
