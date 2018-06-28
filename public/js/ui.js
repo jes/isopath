@@ -33,8 +33,8 @@ $(document).ready(function() {
     }
 
     function game_over() {
-        redraw();
         ingame = false;
+        redraw();
     }
 
     function connect_websocket(connected_cb) {
@@ -146,9 +146,36 @@ $(document).ready(function() {
         localgame = true;
 
         var isopath = new Isopath();
-        var ai = {
-            "black": new IsopathAI(isopath),
-        };
+        var ai = {};
+
+        // assign ai players, if any
+        var players = {white:1, black:1};
+        for (player in players) {
+            var type = $('#' + player + '-player').val();
+            if (type != 'human')
+                ai[player] = new IsopathAI(type, isopath);
+        }
+
+        function nextMove() {
+            $('#whoseturn').text(isopath.curplayer + "'s");
+
+            if (isopath.winner())
+                game_over();
+            else if (ai[isopath.curplayer]) {
+                // run ai move after a 0ms timeout so that the UI updates before the AI is thinking
+                window.setTimeout(function() {
+                    try {
+                        isopath.playMove(ai[isopath.curplayer].move());
+                    } catch(e) {
+                        $('#illegal-move').text("Illegal move from AI: " + e);
+                        ingame = false;
+                    };
+                    $('#whoseturn').text(isopath.curplayer + "'s");
+                    redraw();
+                    nextMove(); // this is not infinite recursion in an ai-vs-ai game, because of the setTimeout
+                }, 0);
+            } // else: do nothing if it's a human player
+        }
 
         view = new IsopathView({
             isopath: isopath,
@@ -167,22 +194,7 @@ $(document).ready(function() {
                 } catch(e) {
                     $('#illegal-move').text(e);
                 };
-                $('#whoseturn').text(isopath.curplayer + "'s");
-                if (isopath.winner())
-                    game_over();
-                else if (ai[isopath.curplayer]) {
-                    // run ai move after a 0ms timeout so that the UI updates before the AI is thinking
-                    window.setTimeout(function() {
-                        try {
-                            isopath.playMove(ai[isopath.curplayer].move());
-                        } catch(e) {
-                            $('#illegal-move').text("Illegal move from AI: " + e);
-                            ingame = false;
-                        };
-                        $('#whoseturn').text(isopath.curplayer + "'s");
-                        redraw();
-                    }, 0);
-                }
+                nextMove();
             },
             move_history: function(html) {
                 $('#movehistory').html(html);
@@ -195,6 +207,7 @@ $(document).ready(function() {
         ingame = true;
         $('#whoseturn').text("white's");
         redraw();
+        nextMove();
     });
 
     $('#new-game').click(function() {
@@ -203,7 +216,7 @@ $(document).ready(function() {
         $('#status').show();
         $('#status').text("Waiting for websocket server...");
         connect_websocket(function(ws) {
-            ws.newGame('white'); // TODO: we should be able to choose
+            ws.newGame($('#play-as').val());
         });
     });
 
@@ -241,6 +254,19 @@ $(document).ready(function() {
     $('#await-opponent').hide();
     $('#gamestate').hide();
     $('#status').hide();
+
+    // add the list of available ais
+    var ais = IsopathAI.list_ais();
+    for (ai in ais) {
+        $('#white-player').append($('<option>', {
+            value: ai,
+            text: "Computer: " + ais[ai].name,
+        }));
+        $('#black-player').append($('<option>', {
+            value: ai,
+            text: "Computer: " + ais[ai].name,
+        }));
+    }
 
     // join a websocket game straight away if an id is specified in the fragment
     var match = window.location.hash.match(/#join-(.*)/);

@@ -102,6 +102,7 @@ Isopath.prototype.is_place = function(place) {
 Isopath.prototype.piece_at = function(place, brd) {
     if (!brd)
         brd = this.board;
+
     if (brd["white"].indexOf(place) != -1)
         return 'white';
     if (brd["black"].indexOf(place) != -1)
@@ -110,6 +111,16 @@ Isopath.prototype.piece_at = function(place, brd) {
 };
 
 Isopath.prototype.winner = function(brd) {
+    if (!brd)
+        brd = this.board;
+
+    // if one player has captured all of the opponent's pieces, he wins
+    if (brd["white"].length == 0)
+        return 'black';
+    if (brd["black"].length == 0)
+        return 'white';
+
+    // if one player has reached the opponent's home row, he wins
     for (var i = 0; i < 4; i++) {
         if (this.piece_at(this.homerow["white"][i],brd) == 'black')
             return 'black';

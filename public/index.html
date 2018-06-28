@@ -47,32 +47,57 @@
     </div>
 
     <div id="game">
-        <div id="hexgrid"></div>
+        <div class="row">
+            <div id="hexgrid"></div>
 
-        <div id="lobby">
-            <button class="btn btn-primary" id="new-game">New websocket game</button><br><br>
-            <button class="btn btn-primary" id="new-local-game">New local game</button><br><br>
-            <!--<button class="btn btn-primary" id="new-ai-game">New local game against AI</button>-->
-        </div>
+            <div class="col-md-5">
+                <div id="lobby">
+                    <div class="form-inline">
+                        White player:
+                        <select class="form-control" id="white-player">
+                            <option value="human">Human</option>
+                        </select>
+                    </div>
+                    <div class="form-inline">
+                        Black player:
+                        <select class="form-control" id="black-player">
+                            <option value="human">Human</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="new-local-game">New local game</button>
 
-        <div id="await-opponent">
-            Send this link to your opponent: <a id="opponent-link" href="#" target="_blank"></a>.<br>
-            Awaiting opponent...<br>
-            <button class="btn btn-danger" id="await-opponent-cancel">Cancel</button>
-        </div>
+                    <hr>
 
-        <div id="gamestate">
-            <div class="text-muted" id="status">Loading...</div>
-            <div id="you-are">You <span id="are">are</span> playing as <b><span id="yourcolour">white</span></b>.<br></div>
-            <div id="whoseturn-div">It is <b><span id="whoseturn">your</span></b> turn.<br></div>
-            <div id="gameover">The game is over.<br></div>
-            <div id="movehistory"></div>
+                    <div class="form-inline">
+                        Play as:
+                        <select class="form-control" id="play-as">
+                            <option value="white">White</option>
+                            <option value="black">Black</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="new-game">New websocket game</button>
+                </div>
 
-            <hr>
+                <div id="await-opponent">
+                    Send this link to your opponent: <a id="opponent-link" href="#" target="_blank"></a>.<br>
+                    Awaiting opponent...<br>
+                    <button class="btn btn-danger" id="await-opponent-cancel">Cancel</button>
+                </div>
 
-            <span id="partial-move"></span> <button class="btn btn-sm btn-primary" id="reset-move">Reset move</button><br>
-            <button style="margin-top: 5px" class="btn btn-sm btn-danger" id="end-game">Close game</button><br>
-            <span style="color:red" id="illegal-move"></span>
+                <div id="gamestate">
+                    <div class="text-muted" id="status">Loading...</div>
+                    <div id="you-are">You <span id="are">are</span> playing as <b><span id="yourcolour">white</span></b>.<br></div>
+                    <div id="whoseturn-div">It is <b><span id="whoseturn">your</span></b> turn.<br></div>
+                    <div id="gameover">The game is over.<br></div>
+                    <div id="movehistory"></div>
+
+                    <hr>
+
+                    <span id="partial-move"></span> <button class="btn btn-sm btn-primary" id="reset-move">Reset move</button><br>
+                    <button style="margin-top: 5px" class="btn btn-sm btn-danger" id="end-game">Close game</button><br>
+                    <span style="color:red" id="illegal-move"></span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -90,6 +115,7 @@
 <script src="js/isopath-ws.js"></script>
 <script src="js/isopath-view.js"></script>
 <script src="js/isopath-ai.js"></script>
+<script src="js/ai/random-moves.js"></script>
 <script src="js/ui.js"></script>
 
 </body>
