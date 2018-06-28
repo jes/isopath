@@ -32,9 +32,15 @@ $(document).ready(function() {
         }
     }
 
-    function game_over() {
+    // https://stackoverflow.com/a/1026087
+    function ucfirst(s) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function game_over(winner) {
         ingame = false;
         redraw();
+        $('#whowon').html("<b>" + ucfirst(winner) + "</b> won.");
     }
 
     function connect_websocket(connected_cb) {
@@ -74,7 +80,7 @@ $(document).ready(function() {
                             $('#illegal-move').text(e);
                         };
                         if (ws.isopath.winner())
-                            game_over();
+                            game_over(ws.isopath.winner());
                     },
                     move_history: function(html) {
                         $('#movehistory').html(html);
@@ -89,7 +95,7 @@ $(document).ready(function() {
             },
             movePlayed: function(player, move) {
                 if (ws.isopath.winner())
-                    game_over();
+                    game_over(ws.isopath.winner());
                 redraw();
                 ready();
             },
@@ -160,7 +166,7 @@ $(document).ready(function() {
             $('#whoseturn').text(isopath.curplayer + "'s");
 
             if (isopath.winner())
-                game_over();
+                game_over(isopath.winner());
             else if (ai[isopath.curplayer]) {
                 // run ai move after a 0ms timeout so that the UI updates before the AI is thinking
                 window.setTimeout(function() {
