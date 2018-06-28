@@ -172,7 +172,7 @@ $(document).ready(function() {
             else if (ai[isopath.curplayer]) {
                 $('#reset-move').hide();
                 redraw();
-                // run ai move after a 0ms timeout so that the UI updates before the AI is thinking
+                // run ai move after a 1ms timeout so that the UI updates before the AI is thinking
                 window.setTimeout(function() {
                     try {
                         isopath.playMove(ai[isopath.curplayer].move());
@@ -183,7 +183,7 @@ $(document).ready(function() {
                     $('#whoseturn').text(isopath.curplayer + "'s");
                     redraw();
                     nextMove(); // this is not infinite recursion even in an ai-vs-ai game, because of the setTimeout
-                }, 0);
+                }, 100);
             } else {
                 $('#reset-move').show();
             }

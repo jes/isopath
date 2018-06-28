@@ -130,6 +130,27 @@ Isopath.prototype.winner = function(brd) {
     return false;
 };
 
+Isopath.prototype.undoMove = function() {
+    var move = this.moves.pop();
+
+    this.curplayer = this.other[this.curplayer];
+
+    for (var i = move.length-1; i >= 0; i--) {
+        var movetype = move[i][0];
+        var from = move[i][1];
+        var to = move[i][2];
+
+        if (movetype == 'tile') {
+            this.board[to]--;
+            this.board[from]++;
+        } else if (movetype == 'piece') {
+            this.board[this.curplayer][this.board[this.curplayer].indexOf(to)] = from;
+        } else if (movetype == 'capture') {
+            this.board[this.other[this.curplayer]].push(from);
+        }
+    }
+};
+
 Isopath.prototype.playMove = function(move, mode) {
     if (move.length == 0)
         throw "move must have at least 1 half";

@@ -11,13 +11,13 @@ function FirstSerious(isopath) {
 FirstSerious.piece_score = function(place, colour) {
     if (colour == 'black') {
         // just invert the location and then score as if it's white
-        place.replace('a', 'G'); place.replace('b', 'F'); place.replace('c', 'E');
-        place.replace('g', 'a'); place.replace('f', 'b'); place.replace('e', 'c');
-        place = place.toLowerCase();
+        place = place.replace('a', 'G').replace('b', 'F').replace('c', 'E')
+            .replace('g', 'a').replace('f', 'b').replace('e', 'c')
+            .toLowerCase();
     }
 
     var row = place.charCodeAt(0) - 'a'.charCodeAt(0);
-    return row;
+    return row*row;
 };
 
 FirstSerious.maxscore = 100000;
@@ -77,6 +77,8 @@ FirstSerious.prototype.random_location_at_height = function(isopath, h) {
             possible.push(p[i]);
     }
 
+    // TODO: what happens when 'possible' is empty?
+
     return possible[Math.floor(Math.random() * possible.length)];
 };
 
@@ -91,17 +93,13 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
     // if they've just won, we've lost
     if (isopath.winner()) {
-        // TODO: once the "if we can win the game instantly, do so" logic is finished, this won't be needed
-        return {
-            move: [],
-            score: -FirstSerious.maxscore,
-        };
+        throw "game shouldn't have ended";
     }
 
     var me = isopath.curplayer;
     var you = isopath.other[me];
 
-    // if we can win the game instantly (either capture their final piece, or move to their home row), do so
+    // if we can win the game instantly by capturing their final piece, do so
     if (isopath.board[you].length == 1) {
         var adjacent_men = 0;
         var adjs = isopath.adjacent[isopath.board[you][0]];
@@ -112,15 +110,67 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         if (adjacent_men >= 2) {
             return {
-                move: ["capture",isopath.board[you][0]],
+                move: [["capture",isopath.board[you][0]]],
                 score: FirstSerious.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
             };
         }
     }
 
+    // if we can win the game instantly by moving onto their home row, do so
+    for (var i = 0; i < isopath.board[me].length; i++) {
+        var from = isopath.board[me][i];
+        var adjs = isopath.adjacent[from];
+        for (var j = 0; j < adjs.length; j++) {
+            var to = adjs[j];
+            if (isopath.homerow[you].indexOf(to) != -1 && isopath.piece_at(to) == '') {
+                // our piece at 'from' is adjacent to the location 'to' which is an unoccupied tile on our opponent's home row
+                if (isopath.board[to] == 1) {
+                    // move a tile and then move on to the location
+                    var tileto, tilefrom;
+                    if (isopath.playerlevel[me] == 2) {
+                        tileto = to;
+                        tilefrom = this.random_location_at_height(isopath, 1);
+                    } else {
+                        tileto = this.random_location_at_height(isopath, 1);
+                        tilefrom = to;
+                    }
+                    return {
+                        move: [["tile",tilefrom,tileto],["piece",from,to]],
+                        score: FirstSerious.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
+                    };
+                } else if (isopath.board[to] == isopath.playerlevel[me]) {
+                    // no need to move a tile, step straight there
+                    return {
+                        move: [["piece",from,to]],
+                        score: FirstSerious.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
+                    };
+                }
+            }
+        }
+    }
+
     // generate candidate moves:
 
-    // TODO: captures
+    var candidate_moves = [];
+
+    // capture moves
+    // TODO: also consider moving a piece instead of a tile in the second half of the capture move, where possible
+    for (var i = 0; i < isopath.board[you].length; i++) {
+        var adjacent_men = 0;
+        var adjs = isopath.adjacent[isopath.board[you][i]];
+        for (var j = 0; j < adjs.length; j++) {
+            if (isopath.piece_at(adjs[j]) == me)
+                adjacent_men++;
+        }
+
+        // if this man is capturable, consider capturing him, and then move a random 1-level tile to another 1-level place
+        if (adjacent_men >= 2) {
+            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,0)]]);
+            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,1)]]);
+            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,2),this.random_location_at_height(isopath,0)]]);
+            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,2),this.random_location_at_height(isopath,1)]]);
+        }
+    }
 
     var piece_moves = [];
     // try moving each of our pieces into each adjacent location
@@ -134,7 +184,6 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         }
     }
 
-    var candidate_moves = [];
     for (var i = 0; i < piece_moves.length; i++) {
         // move a brick to facilitate the piece move if necessary, or alternatively the best-scoring as decided by some heuristic
         var from = piece_moves[i][1];
@@ -142,7 +191,8 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         var tile_moves = [];
 
-        // TODO: a better heuristic to pick 4 good-looking tile moves instead of choosing 4 at random
+        // TODO: a better heuristic to pick 4 good-looking tile moves instead of choosing 4 at random (i.e. use knowledge of
+        // the evaluation function to try to pick the best places to put them)
         if (isopath.board[to] == 1) {
             // need to add/remove a tile in order to move here
             if (isopath.playerlevel[me] == 2) {
@@ -168,6 +218,8 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         } // else {
             // can't move here at all
+            // TODO: make sure we add some candidate moves that move tiles to/from this place so that we might
+            // be able to move here next turn
         //}
 
         // add all of our considered tile moves and this piece move to the list of candidate moves
@@ -185,12 +237,11 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
     // now try each of the candidate moves, and return the one that scores best
     for (var i = 0; i < candidate_moves.length; i++) {
-        // deep-copy the isopath object; this is an extremely inefficient way to go about things
-        var new_isopath = isopath.clone();
         try {
-            new_isopath.playMove(candidate_moves[i]);
-            var response = this.dfs(new_isopath, depth_remaining-1, -beta, -alpha);
-            if (-response.score > best.score || !best.move.length) {
+            isopath.playMove(candidate_moves[i]);
+            var response = this.dfs(isopath, depth_remaining-1, -beta, -alpha);
+            isopath.undoMove();
+            if (-response.score > best.score || best.move.length == 0) {
                 best = {
                     score: -response.score,
                     move: candidate_moves[i],
@@ -211,7 +262,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 }
 
 FirstSerious.prototype.move = function() {
-    var best = this.dfs(this.isopath, 3, -FirstSerious.maxscore, FirstSerious.maxscore);
+    var best = this.dfs(this.isopath, 4, -FirstSerious.maxscore, FirstSerious.maxscore);
     console.log(best);
     return best.move;
 };
