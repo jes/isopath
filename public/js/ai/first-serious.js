@@ -16,8 +16,8 @@ FirstSerious.piece_score = function(place, colour) {
             .toLowerCase();
     }
 
-    var row = place.charCodeAt(0) - 'a'.charCodeAt(0);
-    return row*row;
+    var row = 3 + place.charCodeAt(0) - 'a'.charCodeAt(0);
+    return 100 + row*row*10;
 };
 
 FirstSerious.maxscore = 100000;
@@ -33,9 +33,9 @@ FirstSerious.prototype.evaluate = function(isopath) {
     // big bonus for building on home row
     for (var col = 1; col <= 4; col++) {
         if (isopath.board["a" + col] != 2)
-            whitetiles -= 5;
+            whitetiles -= 8;
         if (isopath.board["g" + col] != 0)
-            whitetiles += 5;
+            whitetiles += 8;
     }
 
     // big bonus for approaching home row
@@ -57,18 +57,28 @@ FirstSerious.prototype.evaluate = function(isopath) {
     for (var i = 0; i < isopath.board['white'].length; i++) {
         var place = isopath.board['white'][i];
         whitepieces += FirstSerious.piece_score(place, 'white');
+        // score us some points for ability to move
+        for (var j = 0; j < isopath.adjacent[place]; j++) {
+            whitepieces += isopath.board[isopath.adjacent[place][j]];
+        }
     }
     for (var i = 0; i < isopath.board['black'].length; i++) {
         var place = isopath.board['black'][i];
         whitepieces -= FirstSerious.piece_score(place, 'black');
+        // score us some points for ability to move
+        for (var j = 0; j < isopath.adjacent[place]; j++) {
+            whitepieces -= 2-isopath.board[isopath.adjacent[place][j]];
+        }
     }
 
     var piecescore = isopath.curplayer == 'white' ? whitepieces : -whitepieces;
 
     // combine those 2 scores into an evaluation
-    return tilescore + 100*piecescore;
+    return tilescore + piecescore;
 };
 
+// TODO: since this function is only used to pick places to take/remove tiles,
+// replace it with something that will be more intelligent about it
 FirstSerious.prototype.random_location_at_height = function(isopath, h) {
     var p = isopath.all_places;
     var possible = [];
@@ -165,6 +175,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         // if this man is capturable, consider capturing him, and then move a random 1-level tile to another 1-level place
         if (adjacent_men >= 2) {
+            if (depth_remaining == 3)
             candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,0)]]);
             candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,1)]]);
             candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,2),this.random_location_at_height(isopath,0)]]);
@@ -240,6 +251,10 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         try {
             isopath.playMove(candidate_moves[i]);
             var response = this.dfs(isopath, depth_remaining-1, -beta, -alpha);
+            /*if (depth_remaining == 3 && response.move[0][0] == 'capture')
+                console.log(" v--> " + IsopathView.prototype.stringify_move(response.move,' ') + " scores you " + response.score);
+            if (depth_remaining == 4)
+                console.log(IsopathView.prototype.stringify_move(candidate_moves[i],' ') + " scores us " + -response.score + " and your best response is " + IsopathView.prototype.stringify_move(response.move,' '));*/
             isopath.undoMove();
             if (-response.score > best.score || best.move.length == 0) {
                 best = {
@@ -263,7 +278,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
 FirstSerious.prototype.move = function() {
     var best = this.dfs(this.isopath, 4, -FirstSerious.maxscore, FirstSerious.maxscore);
-    console.log(best);
+    //console.log(best);
     return best.move;
 };
 
