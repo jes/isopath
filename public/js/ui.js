@@ -181,7 +181,7 @@ $(document).ready(function() {
                     };
                     $('#whoseturn').text(isopath.curplayer + "'s");
                     redraw();
-                    nextMove(); // this is not infinite recursion in an ai-vs-ai game, because of the setTimeout
+                    nextMove(); // this is not infinite recursion even in an ai-vs-ai game, because of the setTimeout
                 }, 0);
             } else {
                 $('#reset-move').show();
