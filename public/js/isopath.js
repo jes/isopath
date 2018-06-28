@@ -214,3 +214,11 @@ Isopath.prototype.isLegalMove = function(move) {
     };
     return true;
 };
+
+Isopath.prototype.clone = function() {
+    var newthis = new Isopath();
+    newthis.board = JSON.parse(JSON.stringify(this.board));
+    newthis.moves = JSON.parse(JSON.stringify(this.moves));
+    newthis.curplayer = this.curplayer;
+    return newthis;
+};

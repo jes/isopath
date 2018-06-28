@@ -171,6 +171,7 @@ $(document).ready(function() {
                 game_over(isopath.winner());
             else if (ai[isopath.curplayer]) {
                 $('#reset-move').hide();
+                redraw();
                 // run ai move after a 0ms timeout so that the UI updates before the AI is thinking
                 window.setTimeout(function() {
                     try {
@@ -243,6 +244,7 @@ $(document).ready(function() {
     });
 
     $('#end-game').click(function() {
+        // TODO: actually stop the AI, etc.
         $('#gamestate').hide();
         $('#lobby').show();
         ingame = false;
