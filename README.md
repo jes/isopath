@@ -28,8 +28,7 @@ need to implement the game rules yourself. I also intend to implement an example
 
 ## Self-hosting
 
-If you only want to play locally, you should be able to copy `templates/index.html.ep` into `public/index.html` and then load
-`index.html` in your favourite web browser.
+If you only want to play locally, you should be able to load `public/index.html` in your favourite web browser.
 
 If you want websocket support, you'll need to get some Perl on. The easiest way to do this on Ubuntu is:
 
