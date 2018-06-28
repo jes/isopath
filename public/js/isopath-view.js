@@ -32,7 +32,7 @@ IsopathView.prototype.clicked_on_hex = function(place) {
         this_place_has = this.opts.isopath.curplayer;
 
     if (this.clickmode == 'piece') {
-        if (this_place_has == '' && place != this.movefrom) {
+        if (this_place_has == '' && place != this.movefrom && this.opts.isopath.board[place] == this.opts.isopath.playerlevel[this.opts.isopath.curplayer]) {
             this.move.push(["piece",this.movefrom,place]);
             if (this.opts.isopath.homerow[this.opts.isopath.other[this.opts.isopath.curplayer]].indexOf(place) != -1) {
                 // we placed a piece on the enemy's homerow, no need for a second move-half
