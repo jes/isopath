@@ -29,6 +29,7 @@ $(document).ready(function() {
             $('#are').text('were');
             $('#whoseturn-div').hide();
             $('#gameover').show();
+            $('#reset-move').hide();
         }
     }
 
@@ -91,6 +92,7 @@ $(document).ready(function() {
                 });
                 view.init_hexgrid('#hexgrid');
                 ingame = true;
+                redraw();
                 ready();
             },
             movePlayed: function(player, move) {
@@ -168,6 +170,7 @@ $(document).ready(function() {
             if (isopath.winner())
                 game_over(isopath.winner());
             else if (ai[isopath.curplayer]) {
+                $('#reset-move').hide();
                 // run ai move after a 0ms timeout so that the UI updates before the AI is thinking
                 window.setTimeout(function() {
                     try {
@@ -180,7 +183,9 @@ $(document).ready(function() {
                     redraw();
                     nextMove(); // this is not infinite recursion in an ai-vs-ai game, because of the setTimeout
                 }, 0);
-            } // else: do nothing if it's a human player
+            } else {
+                $('#reset-move').show();
+            }
         }
 
         view = new IsopathView({
