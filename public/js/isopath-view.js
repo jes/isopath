@@ -56,8 +56,10 @@ IsopathView.prototype.clicked_on_hex = function(place) {
             this.movefrom = place;
         } else {
             // start moving a tile
-            this.clickmode = 'tile';
-            this.movefrom = place;
+            if (this.opts.isopath.board[place] > 0) {
+                this.clickmode = 'tile';
+                this.movefrom = place;
+            }
         }
     }
 
