@@ -148,6 +148,8 @@ Isopath.prototype.playMove = function(move, mode) {
                 throw "can't move a tile to a full place";
             if (this.homerow[this.curplayer].indexOf(from) != -1 || this.homerow[this.curplayer].indexOf(to) != -1)
                 throw "can't build on your own home row";
+            if (newboard["white"].indexOf(from) != -1 || newboard["white"].indexOf(to) != -1 || newboard["black"].indexOf(from) != -1 || newboard["black"].indexOf(to) != -1)
+                throw "can't move a tile to/from a place with a piece on it";
             newboard[from]--;
             newboard[to]++;
 

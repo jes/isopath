@@ -146,6 +146,9 @@ $(document).ready(function() {
         localgame = true;
 
         var isopath = new Isopath();
+        var ai = {
+            "black": new IsopathAI(isopath),
+        };
 
         view = new IsopathView({
             isopath: isopath,
@@ -153,7 +156,7 @@ $(document).ready(function() {
                 redraw();
             },
             can_click: function() {
-                return ingame;
+                return ingame && !ai[isopath.curplayer];
             },
             clicked: function(p) {
                 $('#illegal-move').text('');
@@ -167,6 +170,19 @@ $(document).ready(function() {
                 $('#whoseturn').text(isopath.curplayer + "'s");
                 if (isopath.winner())
                     game_over();
+                else if (ai[isopath.curplayer]) {
+                    // run ai move after a 0ms timeout so that the UI updates before the AI is thinking
+                    window.setTimeout(function() {
+                        try {
+                            isopath.playMove(ai[isopath.curplayer].move());
+                        } catch(e) {
+                            $('#illegal-move').text("Illegal move from AI: " + e);
+                            ingame = false;
+                        };
+                        $('#whoseturn').text(isopath.curplayer + "'s");
+                        redraw();
+                    }, 0);
+                }
             },
             move_history: function(html) {
                 $('#movehistory').html(html);
