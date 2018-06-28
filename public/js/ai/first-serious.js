@@ -33,9 +33,9 @@ FirstSerious.prototype.evaluate = function(isopath) {
     // big bonus for building on home row
     for (var col = 1; col <= 4; col++) {
         if (isopath.board["a" + col] != 2)
-            whitetiles -= 8;
+            whitetiles -= 2;
         if (isopath.board["g" + col] != 0)
-            whitetiles += 8;
+            whitetiles += 2;
     }
 
     // big bonus for approaching home row
@@ -72,6 +72,9 @@ FirstSerious.prototype.evaluate = function(isopath) {
     }
 
     var piecescore = isopath.curplayer == 'white' ? whitepieces : -whitepieces;
+
+    // TODO: some extra part of piecescore based on the shortest number of turns for this piece
+    // to get to a free slot on the enemy's home row
 
     // combine those 2 scores into an evaluation
     return tilescore + piecescore;
@@ -175,7 +178,6 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         // if this man is capturable, consider capturing him, and then move a random 1-level tile to another 1-level place
         if (adjacent_men >= 2) {
-            if (depth_remaining == 3)
             candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,0)]]);
             candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,1)]]);
             candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,2),this.random_location_at_height(isopath,0)]]);
