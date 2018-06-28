@@ -94,7 +94,7 @@ IsopathView.prototype.redraw = function() {
         if (this.clickmode == 'tile' && this.movefrom == place)
             height--;
 
-        $('#' + this.idprefix + '-hex-' + idx).css('background-image', 'url(/img/height' + height + piece + '.png');
+        $('#' + this.idprefix + '-hex-' + idx).css('background-image', 'url(img/height' + height + piece + '.png');
     }
 
     var moves = '';

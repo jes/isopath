@@ -39,7 +39,7 @@ $(document).ready(function() {
 
     function connect_websocket(connected_cb) {
         ws = new IsopathWS({
-            ws: "ws://" + window.location.hostname + ":" + window.location.port + "/ws",
+            ws: (window.location.protocol == 'http:' ? "ws://" : "wss://) + window.location.hostname + ":" + window.location.port + "/ws",
             awaitingOpponent: function(gameid) {
                 var url = window.location.origin + window.location.pathname + '#join-' + gameid;
                 $('#opponent-link').attr('href', url);

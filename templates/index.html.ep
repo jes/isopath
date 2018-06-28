@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
 <head>
-<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="/css/hexagons.css">
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/hexagons.css">
 <title>Isopath</title>
 </head>
 <body>
@@ -84,12 +84,12 @@
     </div>
 </div>
 
-<script src="/js/jquery-3.3.1.min.js"></script>
-<script src="/js/bootstrap.min.js"></script>
-<script src="/js/isopath.js"></script>
-<script src="/js/isopath-ws.js"></script>
-<script src="/js/isopath-view.js"></script>
-<script src="/js/ui.js"></script>
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/isopath.js"></script>
+<script src="js/isopath-ws.js"></script>
+<script src="js/isopath-view.js"></script>
+<script src="js/ui.js"></script>
 
 </body>
 </html>
