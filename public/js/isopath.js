@@ -119,7 +119,7 @@ Isopath.prototype.winner = function(brd) {
     return false;
 };
 
-Isopath.prototype.playMove = function(move) {
+Isopath.prototype.playMove = function(move, mode) {
     if (move.length > 2)
         throw "move may never have more than 2 halves";
 
@@ -180,6 +180,10 @@ Isopath.prototype.playMove = function(move) {
         }
     }
 
+    // just return now if we're only checking the (half-)move for legality
+    if (mode && mode == 'legality-test')
+        return;
+
     if (move.length == 1 && !this.winner(newboard))
         throw "move must have two halves except when the first half wins the game";
 
@@ -187,4 +191,13 @@ Isopath.prototype.playMove = function(move) {
     this.board = newboard;
     this.moves.push(move);
     this.curplayer = this.other[this.curplayer];
+};
+
+Isopath.prototype.isLegalMove = function(move) {
+    try {
+        this.playMove(move, "legality-test");
+    } catch(e) {
+        return false;
+    };
+    return true;
 };
