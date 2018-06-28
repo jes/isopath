@@ -198,10 +198,13 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         }
 
         // if this man is capturable, consider capturing him, and then move a random 1-level tile to another 1-level place
-        // XXX: I think something is wrong with the capture logic; it sometimes can't see a capture, thinks it has the game won
-        // when actually it just gets captured immediately
         if (adjacent_men >= 2) {
-            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,[1,2]),this.random_location_at_height(isopath,[0,1])]]);
+            var tileto, tilefrom;
+            do {
+                tilefrom = this.random_location_at_height(isopath,[1,2]);
+                tileto = this.random_location_at_height(isopath,[0,1]);
+            } while (tileto == tilefrom);
+            candidate_moves.push([["capture",isopath.board[you][i]],["tile",tilefrom,tileto]]);
         }
     }
 
