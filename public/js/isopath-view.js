@@ -46,9 +46,10 @@ IsopathView.prototype.clicked_on_hex = function(place) {
         this.clickmode = '';
     } else {
         this.clickmode = '';
-        if (this.opts.isopath.isLegalMove(this.move.concat([["capture",place]]))) {
+        if (this_place_has == this.opts.isopath.other[this.opts.isopath.curplayer]) {
             // capture
-            this.move.push(["capture",place]);
+            if (this.opts.isopath.isLegalMove(this.move.concat([["capture",place]])))
+                this.move.push(["capture",place]);
         } else if (this_place_has == this.opts.isopath.curplayer) {
             // start moving a piece
             this.clickmode = 'piece';
