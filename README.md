@@ -43,9 +43,14 @@ the code changes.
 If you want to run it in a "production" environment, you'll want to use `hypnotoad` instead of `morbo`, and you'll probably
 want a config file. Create a file called `isopath.conf` in the root directory of the repo, with contents like:
 
-    {hypnotoad => {listen => ['http://*:9008'], workers => 2}}
+    {hypnotoad => {listen => ['http://*:9008'], workers => 1}}
 
-That will instruct hypnotoad to listen on port 9008 and run 2 threads. Start it (and restart it, whenever you want) with:
+That will instruct hypnotoad to listen on port 9008 and run 1 thread. Don't start more than 1 thread else the websockets
+for the two players of a game will sometimes be in different threads and therefore unable to communicate with one another.
+Running in hypnotoad also causes Mojolicious to run in "production" mode instead of "development" mode which (among other
+things) prevents it from leaking so much internal state in error pages.
+
+Start it (and restart it, whenever you want) with:
 
     $ hypnotoad isopath
 
