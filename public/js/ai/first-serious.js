@@ -16,7 +16,7 @@ FirstSerious.piece_score = function(place, colour) {
             .toLowerCase();
     }
 
-    var row = 3 + place.charCodeAt(0) - 'a'.charCodeAt(0);
+    var row = 4 + place.charCodeAt(0) - 'a'.charCodeAt(0);
     return 100 + row*row*10;
 };
 
@@ -186,6 +186,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     }
 
     var piece_moves = [];
+    var already_valid_piece_moves = [];
     // try moving each of our pieces into each adjacent location
     for (var i = 0; i < isopath.board[me].length; i++) {
         var place = isopath.board[me][i];
@@ -193,6 +194,9 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             var adjplace = isopath.adjacent[place][j];
             if (isopath.piece_at(adjplace) == '') {
                 piece_moves.push(['piece',place,adjplace]);
+                if (isopath.board[adjplace] == isopath.playerlevel[me]) {
+                    already_valid_piece_moves.push(['piece',place,adjplace]);
+                }
             }
         }
     }
@@ -229,11 +233,23 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             tile_moves.push(["tile",this.random_location_at_height(isopath, 2),this.random_location_at_height(isopath, 0)]);
             tile_moves.push(["tile",this.random_location_at_height(isopath, 2),this.random_location_at_height(isopath, 1)]);
 
-        } // else {
+        } else if (already_valid_piece_moves.length > 0) {
             // can't move here at all
-            // TODO: make sure we add some candidate moves that move tiles to/from this place so that we might
-            // be able to move here next turn
-        //}
+            // add/remove a tile so that we might be able to move here next turn
+            if (isopath.playerlevel[me] == 2) {
+                // place a tile here
+                candidate_moves.push([["tile",this.random_location_at_height(isopath, 1),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",this.random_location_at_height(isopath, 1),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",this.random_location_at_height(isopath, 2),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",this.random_location_at_height(isopath, 2),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+            } else {
+                // remove the tile here
+                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 1)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 1)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 0)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 0)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+            }
+        }
 
         // add all of our considered tile moves and this piece move to the list of candidate moves
         for (var j = 0; j < tile_moves.length; j++) {
@@ -280,7 +296,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
 FirstSerious.prototype.move = function() {
     var best = this.dfs(this.isopath, 4, -FirstSerious.maxscore, FirstSerious.maxscore);
-    //console.log(best);
+    console.log(best);
     return best.move;
 };
 
