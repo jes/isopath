@@ -190,7 +190,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         try {
             new_isopath.playMove(candidate_moves[i]);
             var response = this.dfs(new_isopath, depth_remaining-1, -beta, -alpha);
-            if (-response.score > best.score || !best.move) {
+            if (-response.score > best.score || !best.move.length) {
                 best = {
                     score: -response.score,
                     move: candidate_moves[i],

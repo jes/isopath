@@ -131,13 +131,14 @@ Isopath.prototype.winner = function(brd) {
 };
 
 Isopath.prototype.playMove = function(move, mode) {
+    if (move.length == 0)
+        throw "move must have at least 1 half";
     if (move.length > 2)
         throw "move may never have more than 2 halves";
 
     if (move.length == 2 && move[0][0] == move[1][0])
         throw "can't play two halfmoves of the same type";
 
-    // XXX: is there a better way to deep-copy?
     var newboard = JSON.parse(JSON.stringify(this.board));
 
     for (var i = 0; i < move.length; i++) {
