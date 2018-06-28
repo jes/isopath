@@ -14,17 +14,23 @@ Important non-technical future work would include creating reading materials tha
 
 ## Writing an AI
 
-The motivation for this project in the first place was that I wanted to write an Isopath AI, and therefore needed a user
-interface. It's unfortunate that I haven't got as far as actually implementing an AI yet.
+### Javascript
 
-But if *you* want to write an Isopath AI...
+See `public/js/ai/random-moves.js` for a basic example. You need to:
 
-The easiest way to start writing an AI is probably to write it in javascript and hack it in to the "local game" mode.
-I intend to implement an example to show how to do this.
+ * create a new class implementing `move()` that returns the move you want to play whenever it gets called
+ * call `IsopathAI.register_ai()`, passing it a short name for your AI, a long name, and a generator
+   function that creates an instance of your class
+
+You do have direct access to the `Isopath` object (it's passed as the only argument to your constructor), but
+you should avoid manipulating it at all. Treat it as read-only. This is not considered a bug as your code
+has complete access to everything in the window anyway.
+
+### Websocket
 
 Another option is to read the `API` file and speak websockets (with the help of `stdio-websocket` if you prefer). This
 has the advantage that you can write it in whatever langauge you like, and run it remotely, but the disadvantage that you
-need to implement the game rules yourself. I also intend to implement an example to show how to do this.
+need to implement the game rules yourself. I intend to implement an example to show how to do this.
 
 ## Self-hosting
 
