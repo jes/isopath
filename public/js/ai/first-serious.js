@@ -67,14 +67,14 @@ FirstSerious.prototype.evaluate = function(isopath) {
         whitepieces -= FirstSerious.piece_score(place, 'black');
         // score us some points for ability to move
         for (var j = 0; j < isopath.adjacent[place]; j++) {
-            whitepieces -= 2-isopath.board[isopath.adjacent[place][j]];
+            whitepieces -= (2-isopath.board[isopath.adjacent[place][j]]);
         }
     }
 
     var piecescore = isopath.curplayer == 'white' ? whitepieces : -whitepieces;
 
-    // TODO: some extra part of piecescore based on the shortest number of turns for this piece
-    // to get to a free slot on the enemy's home row
+    // TODO: some extra part of piecescore based on the shortest path for this piece
+    // to get to a free slot on the enemy's home row, counting number of turns
 
     // combine those 2 scores into an evaluation
     return tilescore + piecescore;
@@ -85,12 +85,29 @@ FirstSerious.prototype.evaluate = function(isopath) {
 FirstSerious.prototype.random_location_at_height = function(isopath, h) {
     var p = isopath.all_places;
     var possible = [];
+
+    var type;
+    if (h.indexOf(0))
+        type = 'put';
+    else
+        type = 'take';
+
     for (var i = 0; i < p.length; i++) {
-        if (isopath.board[p[i]] == h && isopath.piece_at(p[i]) == '')
-            possible.push(p[i]);
+        // needs to be an allowable height, and can't have a piece on it
+        if (h.indexOf(isopath.board[p[i]]) == -1 || isopath.piece_at(p[i]) != '')
+            continue;
+        // can't build on own home row
+        if (isopath.homerow[isopath.curplayer].indexOf(p[i]) != -1)
+            continue;
+        // don't want to take from opponent home row
+        if (type == 'take' && isopath.homerow[isopath.other[isopath.curplayer]].indexOf(p[i]) != -1)
+            continue;
+        possible.push(p[i]);
     }
 
-    // TODO: what happens when 'possible' is empty?
+    // XXX: what better can we do here? is this even possible?
+    if (possible.length == 0)
+        return 'xx';
 
     return possible[Math.floor(Math.random() * possible.length)];
 };
@@ -142,10 +159,14 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
                     var tileto, tilefrom;
                     if (isopath.playerlevel[me] == 2) {
                         tileto = to;
-                        tilefrom = this.random_location_at_height(isopath, 1);
+                        do {
+                            tilefrom = this.random_location_at_height(isopath, [1,2]);
+                        } while (tilefrom == tileto);
                     } else {
-                        tileto = this.random_location_at_height(isopath, 1);
                         tilefrom = to;
+                        do {
+                            tileto = this.random_location_at_height(isopath, [0,1]);
+                        } while (tileto == tilefrom);
                     }
                     return {
                         move: [["tile",tilefrom,tileto],["piece",from,to]],
@@ -178,10 +199,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         // if this man is capturable, consider capturing him, and then move a random 1-level tile to another 1-level place
         if (adjacent_men >= 2) {
-            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,0)]]);
-            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,1),this.random_location_at_height(isopath,1)]]);
-            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,2),this.random_location_at_height(isopath,0)]]);
-            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,2),this.random_location_at_height(isopath,1)]]);
+            candidate_moves.push([["capture",isopath.board[you][i]],["tile",this.random_location_at_height(isopath,[1,2]),this.random_location_at_height(isopath,[0,1])]]);
         }
     }
 
@@ -214,40 +232,25 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             // need to add/remove a tile in order to move here
             if (isopath.playerlevel[me] == 2) {
                 // place a tile here
-                tile_moves.push(["tile",this.random_location_at_height(isopath, 1),to]);
-                tile_moves.push(["tile",this.random_location_at_height(isopath, 1),to]);
-                tile_moves.push(["tile",this.random_location_at_height(isopath, 2),to]);
-                tile_moves.push(["tile",this.random_location_at_height(isopath, 2),to]);
+                tile_moves.push(["tile",this.random_location_at_height(isopath, [1,2]),to]);
             } else {
                 // remove the tile here
-                tile_moves.push(["tile",to,this.random_location_at_height(isopath, 0)]);
-                tile_moves.push(["tile",to,this.random_location_at_height(isopath, 0)]);
-                tile_moves.push(["tile",to,this.random_location_at_height(isopath, 1)]);
-                tile_moves.push(["tile",to,this.random_location_at_height(isopath, 1)]);
+                tile_moves.push(["tile",to,this.random_location_at_height(isopath, [0,1])]);
             }
 
         } else if (isopath.board[to] == isopath.playerlevel[me]) {
             // can move here straight away, need to move a tile elsewhere
-            tile_moves.push(["tile",this.random_location_at_height(isopath, 1),this.random_location_at_height(isopath, 0)]);
-            tile_moves.push(["tile",this.random_location_at_height(isopath, 1),this.random_location_at_height(isopath, 1)]);
-            tile_moves.push(["tile",this.random_location_at_height(isopath, 2),this.random_location_at_height(isopath, 0)]);
-            tile_moves.push(["tile",this.random_location_at_height(isopath, 2),this.random_location_at_height(isopath, 1)]);
+            tile_moves.push(["tile",this.random_location_at_height(isopath, [1,2]),this.random_location_at_height(isopath, [0,1])]);
 
         } else if (already_valid_piece_moves.length > 0) {
             // can't move here at all
             // add/remove a tile so that we might be able to move here next turn
             if (isopath.playerlevel[me] == 2) {
                 // place a tile here
-                candidate_moves.push([["tile",this.random_location_at_height(isopath, 1),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                candidate_moves.push([["tile",this.random_location_at_height(isopath, 1),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                candidate_moves.push([["tile",this.random_location_at_height(isopath, 2),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                candidate_moves.push([["tile",this.random_location_at_height(isopath, 2),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",this.random_location_at_height(isopath, [1,2]),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
             } else {
                 // remove the tile here
-                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 1)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 1)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 0)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, 0)],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, [0,1])],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
             }
         }
 
@@ -257,6 +260,26 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         }
     }
 
+    // try blocking an enemy piece
+    for (var i = 0; i < isopath.board[you].length; i++) {
+        var adjs = isopath.adjacent[isopath.board[you][i]];
+        for (var k = 0; k < adjs.length; k++) {
+            var adj_opponent = adjs[k];
+            if (isopath.board[adj_opponent] != isopath.playerlevel[me]) {
+                if (isopath.playerlevel[me] == 2) {
+                    // add a tile here
+                    candidate_moves.push([["tile",this.random_location_at_height(isopath, [1,2]),adj_opponent],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                } else {
+                    // remove a tile here
+                    candidate_moves.push([["tile",adj_opponent,this.random_location_at_height(isopath, [0,1])],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                }
+            }
+        }
+    }
+
+    // TODO: track which "generator" the most decisive moves come from, and increase the
+    // amount of moves that that generator is allowed to generate?
+
     var best = {
         move: [],
         score: -FirstSerious.maxscore,
@@ -264,38 +287,35 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
     //console.log("Got " + candidate_moves.length + " moves to try");
 
+    // TODO: sort moves; we want to evaluate the best moves first to take most advantage
+    // of alpha-beta pruning
+
     // now try each of the candidate moves, and return the one that scores best
     for (var i = 0; i < candidate_moves.length; i++) {
-        try {
-            isopath.playMove(candidate_moves[i]);
-            var response = this.dfs(isopath, depth_remaining-1, -beta, -alpha);
-            /*if (depth_remaining == 3 && response.move[0][0] == 'capture')
-                console.log(" v--> " + IsopathView.prototype.stringify_move(response.move,' ') + " scores you " + response.score);
-            if (depth_remaining == 4)
-                console.log(IsopathView.prototype.stringify_move(candidate_moves[i],' ') + " scores us " + -response.score + " and your best response is " + IsopathView.prototype.stringify_move(response.move,' '));*/
-            isopath.undoMove();
-            if (-response.score > best.score || best.move.length == 0) {
-                best = {
-                    score: -response.score,
-                    move: candidate_moves[i],
-                };
-            }
-            if (-response.score > alpha)
-                alpha = -response.score;
-            if (alpha >= beta)
-                break;
-        } catch(e) {
-            /*console.log("Attempted illegal move: " + e);
-            console.log(candidate_moves[i]);
-            console.log("---");*/
-        };
+        if (!isopath.isLegalMove(candidate_moves[i]))
+            continue;
+        isopath.playMove(candidate_moves[i]);
+        var response = this.dfs(isopath, depth_remaining-1, -beta, -alpha);
+        isopath.undoMove();
+
+        if (-response.score > best.score || best.move.length == 0) {
+            best = {
+                score: -response.score,
+                move: candidate_moves[i],
+            };
+        }
+
+        if (-response.score > alpha)
+            alpha = -response.score;
+        if (alpha >= beta)
+            break;
     }
 
     return best;
 }
 
 FirstSerious.prototype.move = function() {
-    var best = this.dfs(this.isopath, 4, -FirstSerious.maxscore, FirstSerious.maxscore);
+    var best = this.dfs(this.isopath, 5, -FirstSerious.maxscore, FirstSerious.maxscore);
     console.log(best);
     return best.move;
 };
