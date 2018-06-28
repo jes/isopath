@@ -9,12 +9,13 @@ IsopathAI.prototype.randplace = function() {
 };
 
 IsopathAI.prototype.move = function() {
-    var move = [];
-
-    // always capture a piece if we can 
     var ip = this.isopath;
     var me = ip.curplayer;
     var you = ip.other[me];
+
+    var move = [];
+
+    // always capture a piece if we can
     for (var i = 0; i < ip.board[you].length; i++) {
         if (ip.isLegalMove([["capture",ip.board[you][i]]])) {
             move.push(["capture",ip.board[you][i]]);
@@ -22,14 +23,14 @@ IsopathAI.prototype.move = function() {
         }
     }
 
-    // just generate random candidate moves until we find one that is legal
+    // generate random candidate moves until we find one that is legal
     while (true) {
         var thismove;
 
         // move a tile from a random location to another random location
         do {
             thismove = [["tile",this.randplace(),this.randplace()]];
-        } while(!ip.isLegalMove(thismove));
+        } while(!ip.isLegalMove(move.concat(thismove)));
 
         // only move a piece if we didn't already capture a piece
         if (move.length == 0) {
