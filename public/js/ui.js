@@ -165,6 +165,9 @@ $(document).ready(function() {
         }
 
         function nextMove() {
+            if (!ingame)
+                return;
+
             $('#whoseturn').text(isopath.curplayer + "'s");
 
             if (isopath.winner())
@@ -172,7 +175,7 @@ $(document).ready(function() {
             else if (ai[isopath.curplayer]) {
                 $('#reset-move').hide();
                 redraw();
-                // run ai move after a 1ms timeout so that the UI updates before the AI is thinking
+                // run ai move after a timeout so that the UI updates before the AI is thinking
                 window.setTimeout(function() {
                     try {
                         isopath.playMove(ai[isopath.curplayer].move());

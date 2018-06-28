@@ -160,6 +160,7 @@ Isopath.prototype.playMove = function(move, mode) {
     if (move.length == 2 && move[0][0] == move[1][0])
         throw "can't play two halfmoves of the same type";
 
+    // TODO: more efficient way to test moves for legality without deep-copying the board
     var newboard = JSON.parse(JSON.stringify(this.board));
 
     for (var i = 0; i < move.length; i++) {
