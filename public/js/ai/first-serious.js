@@ -113,7 +113,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         if (adjacent_men >= 2) {
             return {
                 move: ["capture",isopath.board[you][0]],
-                score: FirstSerious.maxscore,
+                score: FirstSerious.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
             };
         }
     }
@@ -190,7 +190,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         try {
             new_isopath.playMove(candidate_moves[i]);
             var response = this.dfs(new_isopath, depth_remaining-1, -beta, -alpha);
-            if (-response.score > best.score) {
+            if (-response.score > best.score || !best.move) {
                 best = {
                     score: -response.score,
                     move: candidate_moves[i],
