@@ -3,12 +3,12 @@ connect to websocket at /ws
 It's perfectly fine to play multiple games over the same websocket, although you can't have both players
 of the same game using the same websocket.
 
-It's intended that both human and AI players will use exactly the same websocket API.
+Both human and AI players can use exactly the same websocket API.
 
-It might be handy to write a CLI wrapper that will expose the websocket connection over stdin/stdout to make
+stdio-websocket is a CLI wrapper that will expose the websocket connection over stdin/stdout to make
 it easier to write clients.
 
-The server is not required to do any validation. Clients should always validate everything.
+The server is not required to do any validation. Clients should always validate everything, including move legality.
 
 messages to server:
   new-game
