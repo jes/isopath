@@ -118,7 +118,14 @@ $(document).ready(function() {
                 connected = false;
             },
             error: function(err) {
-                $('#status').text("Error: " + err);
+                if (ingame) {
+                    $('#status').text("Error: " + err);
+                } else {
+                    $('#awaiting-opponent').hide();
+                    $('#gamestate').hide();
+                    $('#lobby').show();
+                }
+                ingame = false;
             },
         });
         ws.connect();
