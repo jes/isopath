@@ -113,14 +113,6 @@ FirstSerious.prototype.random_location_at_height = function(isopath, h) {
 };
 
 FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
-    // if this is the limit of the search depth, just return the score
-    if (depth_remaining == 0) {
-        return {
-            move: [],
-            score: this.evaluate(isopath),
-        };
-    }
-
     // if they've just won, we've lost
     if (isopath.winner()) {
         throw "game shouldn't have ended";
@@ -181,6 +173,14 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
                 }
             }
         }
+    }
+
+    // if this is the limit of the search depth, just return the score
+    if (depth_remaining == 0) {
+        return {
+            move: [],
+            score: this.evaluate(isopath),
+        };
     }
 
     // generate candidate moves:
