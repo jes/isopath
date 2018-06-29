@@ -163,6 +163,7 @@ $(document).ready(function() {
     $('#undo-move').click(function() {
         ingame = true;
         isopath.undoMove();
+        view.reset_move();
         redraw();
     });
 
