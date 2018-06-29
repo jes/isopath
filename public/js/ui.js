@@ -171,7 +171,6 @@ $(document).ready(function() {
         $('#lobby').hide();
         $('#status').hide();
         $('#gamestate').show();
-        $('#undo-move').show();
         localgame = true;
 
         isopath = new Isopath();
@@ -186,6 +185,12 @@ $(document).ready(function() {
             $('#' + player + '-name').text($('#' + player + '-player option:selected').text());
         }
 
+        // TODO: make the undo function compatible with ai
+        if (!ai['white'] && !ai['black'])
+            $('#undo-move').show();
+        else
+            $('#undo-move').hide();
+
         function nextMove() {
             if (!ingame)
                 return;
@@ -194,7 +199,6 @@ $(document).ready(function() {
                 game_over(isopath.winner());
             else if (ai[isopath.curplayer]) {
                 $('#reset-move').hide();
-                $('#undo-move').attr('disabled',true);
                 redraw();
                 // run ai move after a timeout so that the UI updates before the AI is thinking
                 window.setTimeout(function() {
@@ -209,7 +213,6 @@ $(document).ready(function() {
                 }, 100);
             } else {
                 $('#reset-move').show();
-                $('#undo-move').attr('disabled',false);
             }
         }
 
