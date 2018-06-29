@@ -63,6 +63,15 @@ $(document).ready(function() {
                 $('#yourcolour').text(player);
                 $('#await-opponent').hide();
                 $('#gamestate').show();
+
+                if (player == 'white') {
+                    $('#white-name').text('Local player');
+                    $('#black-name').text('Remote player');
+                } else {
+                    $('#black-name').text('Local player');
+                    $('#white-name').text('Remote player');
+                }
+
                 view = new IsopathView({
                     isopath: ws.isopath,
                     redraw: function() {
