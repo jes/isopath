@@ -19,6 +19,10 @@ function IsopathView(opts) {
 
 IsopathView.prototype.clicked_on_hex = function(place) {
     var movedone = false;
+    var donehalf = '';
+
+    if (this.move.length == 1)
+        donehalf = this.move[0][0];
 
     this.opts.clicked(place);
 
@@ -48,15 +52,17 @@ IsopathView.prototype.clicked_on_hex = function(place) {
         this.clickmode = '';
         if (this_place_has == this.opts.isopath.other[this.opts.isopath.curplayer]) {
             // capture
-            if (this.opts.isopath.isLegalMove(this.move.concat([["capture",place]])))
+            if (donehalf != 'capture' && this.opts.isopath.isLegalMove(this.move.concat([["capture",place]])))
                 this.move.push(["capture",place]);
         } else if (this_place_has == this.opts.isopath.curplayer) {
             // start moving a piece
-            this.clickmode = 'piece';
-            this.movefrom = place;
+            if (donehalf != 'piece') {
+                this.clickmode = 'piece';
+                this.movefrom = place;
+            }
         } else {
             // start moving a tile
-            if (this.opts.isopath.board[place] > 0) {
+            if (donehalf != 'tile' && this.opts.isopath.board[place] > 0) {
                 this.clickmode = 'tile';
                 this.movefrom = place;
             }
