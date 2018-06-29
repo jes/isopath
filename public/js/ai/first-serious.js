@@ -332,6 +332,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     }
 
     var tried = {};
+    var best_moves = [];
     // now try each of the candidate moves, and return the one that scores best
     for (var i = 0; i < candidate_moves.length; i++) {
         // don't test duplicate moves
@@ -364,6 +365,31 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             alpha = -response.score;
         if (alpha >= beta)
             break;
+
+        // once we've searched and found the 2 or 3 best moves (assuming we didn't alpha-cutoff),
+        // try recombining the parts of those top moves to see if we can find a better move
+        // (we still won't bother searching duplicates)
+        if (best_moves.length < 2 || -response.score > best_moves[1].score) {
+            best_moves.push({
+                score: -response.score,
+                move: candidate_moves[i],
+            });
+
+            best_moves.sort(function(a,b) { return a.score-b.score; });
+            if (best_moves.length > 2)
+                best_moves.pop();
+         }
+         if (i == candidate_moves.length-1 && best_moves.length == 2) {
+            for (var j = 0; j < 2; j++) {
+                for (var k = 0; k < 2; k++) {
+                    for (var l = 0; l < 2; l++) {
+                        if (best_moves[l].move[1][0] != 'tile') {
+                            candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[0][2]], best_moves[l].move[1]]);
+                        }
+                    }
+                }
+            }
+         }
     }
 
     return best;
