@@ -6,6 +6,7 @@
 
 function FirstSerious(isopath) {
     this.isopath = isopath;
+    this.saved_moves = [];
 }
 
 FirstSerious.piece_score = function(place, colour) {
@@ -20,6 +21,7 @@ FirstSerious.piece_score = function(place, colour) {
     return 100 + row*row*10;
 };
 
+FirstSerious.searchdepth = 5;
 FirstSerious.maxscore = 100000;
 FirstSerious.prototype.evaluate = function(isopath) {
     // one score for tile values for each player
@@ -292,16 +294,64 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
     //console.log("Got " + candidate_moves.length + " moves to try");
 
-    // TODO: sort moves; we want to evaluate the best moves first to take most advantage
-    // of alpha-beta pruning
+    // order moves: we want the best moves to be tried first in order to take most
+    // advantage of alpha-beta pruning
+    // (this is a performance improvement rather than a play-style improvement, modulo
+    // the extent to which improved performance allows deeper search)
+    candidate_moves.sort(function(a,b) {
+        // try captures first
+        if (a[0][0] == 'capture')
+            return -1;
+        if (b[0][0] == 'capture')
+            return 1;
 
+        if (a[1] == undefined)
+            return 1;
+        if (b[1] == undefined)
+            return -1;
+
+        // if not a capture, _[0] is a tile move and _[1] is a piece move
+
+        // try to advance towards the opponent's home row
+        if (me == 'white')
+            return b[1][1].charCodeAt(0) - a[1][1].charCodeAt(0);
+        else
+            return a[1][1].charCodeAt(0) - b[1][1].charCodeAt(0);
+
+        // how else could we order moves?
+        return 0;
+    });
+
+    // add on the best moves from last time (they won't all be legal, but that's fine)
+    // these go at the front so we try them first
+    // this basically gives us twice as many choices for tile placement on the piece moves
+    // that are likely to be best (one from last turn's search, one from this search)
+    if (depth_remaining == FirstSerious.searchdepth)
+        candidate_moves = this.saved_moves.concat(candidate_moves);
+        this.saved_moves = [];
+    }
+
+    var tried = {};
     // now try each of the candidate moves, and return the one that scores best
     for (var i = 0; i < candidate_moves.length; i++) {
+        // don't test duplicate moves
+        if (tried[JSON.stringify(candidate_moves[i])])
+            continue;
+        tried[JSON.stringify(candidate_moves[i])] = true;
+
+        // or illegal moves
         if (!isopath.isLegalMove(candidate_moves[i]))
             continue;
+
         isopath.playMove(candidate_moves[i]);
         var response = this.dfs(isopath, depth_remaining-1, -beta, -alpha);
         isopath.undoMove();
+
+        // remember what we thought our best response was (for each possibility)
+        // so that we can try those next time
+        if (depth_remaining == FirstSerious.searchdepth-1) {
+            this.saved_moves.push(response.best);
+        }
 
         if (-response.score > best.score || best.move.length == 0) {
             best = {
@@ -320,7 +370,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 }
 
 FirstSerious.prototype.move = function() {
-    var best = this.dfs(this.isopath, 5, -FirstSerious.maxscore, FirstSerious.maxscore);
+    var best = this.dfs(this.isopath, FirstSerious.searchdepth, -FirstSerious.maxscore, FirstSerious.maxscore);
     console.log(best);
     return best.move;
 };

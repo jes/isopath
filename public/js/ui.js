@@ -162,6 +162,7 @@ $(document).ready(function() {
             var type = $('#' + player + '-player').val();
             if (type != 'human')
                 ai[player] = new IsopathAI(type, isopath);
+            $('#' + player + '-name').text($('#' + player + '-player option:selected').text());
         }
 
         function nextMove() {
@@ -230,6 +231,13 @@ $(document).ready(function() {
         $('#lobby').hide();
         $('#status').show();
         $('#status').text("Waiting for websocket server...");
+        if ($('#play-as').val() == 'white') {
+            $('#white-name').text('Local player');
+            $('#black-name').text('Remote player');
+        } else {
+            $('#black-name').text('Local player');
+            $('#white-name').text('Remote player');
+        }
         connect_websocket(function(ws) {
             ws.newGame($('#play-as').val());
         });
