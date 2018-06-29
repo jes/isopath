@@ -326,7 +326,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     // these go at the front so we try them first
     // this basically gives us twice as many choices for tile placement on the piece moves
     // that are likely to be best (one from last turn's search, one from this search)
-    if (depth_remaining == FirstSerious.searchdepth)
+    if (depth_remaining == FirstSerious.searchdepth) {
         candidate_moves = this.saved_moves.concat(candidate_moves);
         this.saved_moves = [];
     }
