@@ -87,7 +87,7 @@ FirstSerious.prototype.random_location_at_height = function(isopath, h) {
     var possible = [];
 
     var type;
-    if (h.indexOf(0))
+    if (h.indexOf(0) != -1)
         type = 'put';
     else
         type = 'take';
