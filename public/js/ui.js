@@ -8,6 +8,7 @@ $(document).ready(function() {
     var ourturn = false;
     var connected = false;
     var localgame = false;
+    var has_ai = false;
 
     function ready() {
         $('#status').text('Ready.');
@@ -163,6 +164,8 @@ $(document).ready(function() {
     $('#undo-move').click(function() {
         ingame = true;
         isopath.undoMove();
+        if (has_ai) // undo 2 moves when playing against ai
+            isopath.undoMove();
         view.reset_move();
         redraw();
     });
@@ -177,12 +180,16 @@ $(document).ready(function() {
         isopath = new Isopath();
         var ai = {};
 
+        has_ai = false;
+
         // assign ai players, if any
         var players = {white:1, black:1};
         for (player in players) {
             var type = $('#' + player + '-player').val();
-            if (type != 'human')
+            if (type != 'human') {
                 ai[player] = new IsopathAI(type, isopath);
+                has_ai = true;
+            }
             $('#' + player + '-name').text($('#' + player + '-player option:selected').text());
         }
 
