@@ -194,6 +194,7 @@ $(document).ready(function() {
                 game_over(isopath.winner());
             else if (ai[isopath.curplayer]) {
                 $('#reset-move').hide();
+                $('#undo-move').attr('disabled',true);
                 redraw();
                 // run ai move after a timeout so that the UI updates before the AI is thinking
                 window.setTimeout(function() {
@@ -208,6 +209,7 @@ $(document).ready(function() {
                 }, 100);
             } else {
                 $('#reset-move').show();
+                $('#undo-move').attr('disabled',false);
             }
         }
 
