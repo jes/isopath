@@ -2,6 +2,7 @@
 $(document).ready(function() {
     var ws; // an IsopathWS from isopath-ws.js
     var view; // an IsopathView from isopath-view.js
+    var isopath; // an Isopath from isopath.js (only when playing a local game)
 
     var ingame = false;
     var ourturn = false;
@@ -22,6 +23,8 @@ $(document).ready(function() {
         }
 
         if (ingame) {
+            if (localgame)
+                $('#whoseturn').text(isopath.curplayer + "'s");
             $('#are').text('are');
             $('#whoseturn-div').show();
             $('#gameover').hide();
@@ -45,6 +48,7 @@ $(document).ready(function() {
     }
 
     function connect_websocket(connected_cb) {
+        isopath = undefined;
         ws = new IsopathWS({
             ws: (window.location.protocol == 'http:' ? "ws://" : "wss://") + window.location.hostname + ":" + window.location.port + "/ws",
             awaitingOpponent: function(gameid) {
@@ -156,13 +160,20 @@ $(document).ready(function() {
         }, 60000);
     }
 
+    $('#undo-move').click(function() {
+        ingame = true;
+        isopath.undoMove();
+        redraw();
+    });
+
     $('#new-local-game').click(function() {
         $('#lobby').hide();
         $('#status').hide();
         $('#gamestate').show();
+        $('#undo-move').show();
         localgame = true;
 
-        var isopath = new Isopath();
+        isopath = new Isopath();
         var ai = {};
 
         // assign ai players, if any
@@ -178,8 +189,6 @@ $(document).ready(function() {
             if (!ingame)
                 return;
 
-            $('#whoseturn').text(isopath.curplayer + "'s");
-
             if (isopath.winner())
                 game_over(isopath.winner());
             else if (ai[isopath.curplayer]) {
@@ -193,7 +202,6 @@ $(document).ready(function() {
                         $('#illegal-move').text("Illegal move from AI: " + e);
                         ingame = false;
                     };
-                    $('#whoseturn').text(isopath.curplayer + "'s");
                     redraw();
                     nextMove(); // this is not infinite recursion even in an ai-vs-ai game, because of the setTimeout
                 }, 100);
@@ -228,9 +236,9 @@ $(document).ready(function() {
                 $('#partial-move').text(text);
             },
         });
+
         view.init_hexgrid('#hexgrid');
         ingame = true;
-        $('#whoseturn').text("white's");
         redraw();
         nextMove();
     });
@@ -247,6 +255,7 @@ $(document).ready(function() {
             $('#black-name').text('Local player');
             $('#white-name').text('Remote player');
         }
+        $('#undo-move').hide();
         connect_websocket(function(ws) {
             ws.newGame($('#play-as').val());
         });
@@ -305,6 +314,7 @@ $(document).ready(function() {
     var match = window.location.hash.match(/#join-(.*)/);
     if (match) {
         $('#status').show();
+        $('#undo-move').hide();
         $('#status').text("Waiting for websocket server...");
         connect_websocket(function(ws) {
             ws.joinGame(match[1]);
