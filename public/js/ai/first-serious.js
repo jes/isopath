@@ -383,9 +383,15 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             for (var j = 0; j < 2; j++) {
                 for (var k = 0; k < 2; k++) {
                     for (var l = 0; l < 2; l++) {
-                        if (best_moves[l].move[1][0] != 'tile') {
-                            candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[0][2]], best_moves[l].move[1]]);
-                        }
+                        // most of these attempts won't be legal
+                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[0][2]], best_moves[l].move[1]]);
+                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[1][2]], best_moves[l].move[1]]);
+                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[0][2]], best_moves[l].move[1]]);
+                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[1][2]], best_moves[l].move[1]]);
+                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[0][2]], best_moves[l].move[0]]);
+                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[1][2]], best_moves[l].move[0]]);
+                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[0][2]], best_moves[l].move[0]]);
+                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[1][2]], best_moves[l].move[0]]);
                     }
                 }
             }
