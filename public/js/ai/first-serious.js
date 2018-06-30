@@ -80,7 +80,12 @@ FirstSerious.prototype.evaluate = function(isopath) {
     // to get to a free slot on the enemy's home row, counting number of turns
 
     // combine those 2 scores into an evaluation
-    return tilescore + piecescore;
+    var score = tilescore + piecescore;
+
+    if (score > FirstSerious.maxscore || score < -FirstSerious.maxscore)
+        console.log("Generated score " + score + " out of range; adjust maxscore?");
+
+    return score;
 };
 
 // TODO: since this function is only used to pick places to take/remove tiles,
