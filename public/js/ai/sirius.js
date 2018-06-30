@@ -9,6 +9,8 @@ function Sirius(isopath, searchdepth) {
     this.searchdepth = searchdepth;
     this.saved_moves = [];
     this.transpos = {nelems: 0};
+    this.bestmovetype = {};
+    this.triedmovetype = {};
 }
 
 Sirius.piece_score = function(place, colour) {
@@ -262,11 +264,16 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         // if this man is capturable, consider capturing him, and then move a random 1-level tile to another 1-level place
         if (adjacent_men >= 2) {
             var tileto, tilefrom;
+            var m, cnt = 0;
             do {
-                tilefrom = randtilefrom();
-                tileto = randtileto();
-            } while (tileto == tilefrom);
-            candidate_moves.push([["capture",isopath.board[you][i]],["tile",tilefrom,tileto]]);
+                do {
+                    tilefrom = randtilefrom();
+                    tileto = randtileto();
+                } while (tileto == tilefrom);
+                m = [["capture",isopath.board[you][i]],["tile",tilefrom,tileto]];
+            } while (!isopath.isLegalMove(m) && ++cnt < 5);
+            m.push("capture");
+            candidate_moves.push(m);
         }
     }
 
@@ -315,20 +322,25 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             tile_moves.push(["tile",tilefrom,tileto]);
 
         } else if (already_valid_piece_moves.length > 0) {
+            var m, cnt = 0;
             // can't move here at all
             // add/remove a tile so that we might be able to move here next turn
-            if (isopath.playerlevel[me] == 2) {
-                // place a tile here
-                candidate_moves.push([["tile",randtilefrom(),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-            } else {
-                // remove the tile here
-                candidate_moves.push([["tile",to,randtileto()],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-            }
+            do {
+                if (isopath.playerlevel[me] == 2) {
+                    // place a tile here
+                    m = [["tile",randtilefrom(),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]];
+                } else {
+                    // remove the tile here
+                    m = [["tile",to,randtileto()],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]];
+                }
+            } while (!isopath.isLegalMove(m) && ++cnt < 5);
+            m.push("cantmovehere");
+            candidate_moves.push(m);
         }
 
         // add all of our considered tile moves and this piece move to the list of candidate moves
         for (var j = 0; j < tile_moves.length; j++) {
-            candidate_moves.push([tile_moves[j], piece_moves[i]]);
+            candidate_moves.push([tile_moves[j], piece_moves[i],"tilemoveto" + isopath.board[to]]);
         }
     }
 
@@ -338,13 +350,18 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         for (var k = 0; k < adjs.length; k++) {
             var adj_opponent = adjs[k];
             if (isopath.board[adj_opponent] != isopath.playerlevel[me]) {
-                if (isopath.playerlevel[me] == 2) {
-                    // add a tile here
-                    candidate_moves.push([["tile",randtilefrom(),adj_opponent],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                } else {
-                    // remove a tile here
-                    candidate_moves.push([["tile",adj_opponent,randtileto()],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
-                }
+                var m, cnt;
+                do {
+                    if (isopath.playerlevel[me] == 2) {
+                        // add a tile here
+                        m = [["tile",randtilefrom(),adj_opponent],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]];
+                    } else {
+                        // remove a tile here
+                        m = [["tile",adj_opponent,randtileto()],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]];
+                    }
+                } while (!isopath.isLegalMove(m) && ++cnt < 5);
+                m.push("blockenemy");
+                candidate_moves.push(m);
             }
         }
     }
@@ -400,6 +417,15 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     var best_moves = [];
     // now try each of the candidate moves, and return the one that scores best
     for (var i = 0; i < candidate_moves.length; i++) {
+        var movetype = 'unknown';
+        if (candidate_moves[i].length == 3) {
+            movetype = candidate_moves[i].pop();
+        }
+
+        if (!this.triedmovetype[movetype])
+            this.triedmovetype[movetype] = 0;
+        this.triedmovetype[movetype]++;
+
         // don't test duplicate moves
         if (tried[JSON.stringify(candidate_moves[i])])
             continue;
@@ -416,13 +442,14 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         // remember what we thought our best response was (for each possibility)
         // so that we can try those next time
         if (depth_remaining == this.searchdepth-1) {
-            this.saved_moves.push(response.best);
+            this.saved_moves.push(response.move.concat("savedmove"));
         }
 
         if (-response.score > best.score || best.move.length == 0) {
             best = {
                 score: -response.score,
                 move: candidate_moves[i],
+                type: movetype,
             };
         }
 
@@ -434,29 +461,28 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         // once we've searched and found the 2 or 3 best moves (assuming we didn't alpha-cutoff),
         // try recombining the parts of those top moves to see if we can find a better move
         // (we still won't bother searching duplicates)
-        if (best_moves.length < 2 || -response.score > best_moves[1].score) {
+        if (best_moves.length < 3 || -response.score > best_moves[2].score) {
             best_moves.push({
                 score: -response.score,
                 move: candidate_moves[i],
             });
 
             best_moves.sort(function(a,b) { return a.score-b.score; });
-            if (best_moves.length > 2)
+            if (best_moves.length > 3)
                 best_moves.pop();
          }
-         if (i == candidate_moves.length-1 && best_moves.length == 2) {
-            for (var j = 0; j < 2; j++) {
-                for (var k = 0; k < 2; k++) {
-                    for (var l = 0; l < 2; l++) {
+         if (i == candidate_moves.length-1 && best_moves.length == 3) {
+            for (var j = 0; j < 3; j++) {
+                for (var k = 0; k < 3; k++) {
+                    for (var l = 0; l < 3; l++) {
                         // most of these attempts won't be legal
-                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[0][2]], best_moves[l].move[1]]);
-                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[1][2]], best_moves[l].move[1]]);
-                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[0][2]], best_moves[l].move[1]]);
-                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[1][2]], best_moves[l].move[1]]);
-                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[0][2]], best_moves[l].move[0]]);
-                        candidate_moves.push([['tile',best_moves[j].move[0][1],best_moves[k].move[1][2]], best_moves[l].move[0]]);
-                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[0][2]], best_moves[l].move[0]]);
-                        candidate_moves.push([['tile',best_moves[j].move[1][1],best_moves[k].move[1][2]], best_moves[l].move[0]]);
+                        for (var m = 0; m < 2; m++) {
+                            for (var n = 0; n < 2; n++) {
+                                for (var o = 0; o < 2; o++) {
+                                    candidate_moves.push([['tile',best_moves[j].move[m][1],best_moves[k].move[n][2]], best_moves[l].move[o],"recomb"]);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -484,12 +510,18 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     this.transpos[this.strboard(isopath)] = ttentry;
     this.transpos.nelems++;
 
+    if (!this.bestmovetype[best.type])
+        this.bestmovetype[best.type] = 0;
+    this.bestmovetype[best.type]++;
+
     return best;
 }
 
 Sirius.prototype.move = function() {
     var best = this.dfs(this.isopath, this.searchdepth, -Sirius.maxscore, Sirius.maxscore);
     console.log(best);
+    console.log(this.bestmovetype);
+    console.log(this.triedmovetype);
     return best.move;
 };
 
