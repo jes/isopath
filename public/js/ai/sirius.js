@@ -4,8 +4,9 @@
  *  - algorithm is mostly as intended, but efficiency is poor
  */
 
-function Sirius(isopath) {
+function Sirius(isopath, searchdepth) {
     this.isopath = isopath;
+    this.searchdepth = searchdepth;
     this.saved_moves = [];
     this.transpos = {nelems: 0};
 }
@@ -22,7 +23,6 @@ Sirius.piece_score = function(place, colour) {
     return 100 + row*row*10;
 };
 
-Sirius.searchdepth = 5;
 Sirius.maxscore = 100000;
 Sirius.prototype.evaluate = function(isopath) {
     // one score for tile values for each player
@@ -375,7 +375,7 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     // these go at the front so we try them first
     // this basically gives us twice as many choices for tile placement on the piece moves
     // that are likely to be best (one from last turn's search, one from this search)
-    if (depth_remaining == Sirius.searchdepth) {
+    if (depth_remaining == this.searchdepth) {
         candidate_moves = this.saved_moves.concat(candidate_moves);
         this.saved_moves = [];
     }
@@ -399,7 +399,7 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         // remember what we thought our best response was (for each possibility)
         // so that we can try those next time
-        if (depth_remaining == Sirius.searchdepth-1) {
+        if (depth_remaining == this.searchdepth-1) {
             this.saved_moves.push(response.best);
         }
 
@@ -472,11 +472,14 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 }
 
 Sirius.prototype.move = function() {
-    var best = this.dfs(this.isopath, Sirius.searchdepth, -Sirius.maxscore, Sirius.maxscore);
+    var best = this.dfs(this.isopath, this.searchdepth, -Sirius.maxscore, Sirius.maxscore);
     console.log(best);
     return best.move;
 };
 
 IsopathAI.register_ai('sirius', 'Sirius', function(isopath) {
-    return new Sirius(isopath);
+    return new Sirius(isopath, 5);
+});
+IsopathAI.register_ai('sirius-fast', 'Sirius (weaker)', function(isopath) {
+    return new Sirius(isopath, 4);
 });
