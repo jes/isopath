@@ -132,7 +132,6 @@ Isopath.prototype.winner = function(brd) {
 
 Isopath.prototype.undoMove = function() {
     var move = this.moves.pop();
-
     this.curplayer = this.other[this.curplayer];
 
     for (var i = move.length-1; i >= 0; i--) {
@@ -152,21 +151,47 @@ Isopath.prototype.undoMove = function() {
 };
 
 Isopath.prototype.playMove = function(move, mode) {
+    if (!mode || mode != 'no-legality-check')
+        this.checkMoveLegality(move);
+
+    for (var i = 0; i < move.length; i++) {
+        let movetype = move[i][0];
+        let from = move[i][1];
+        let to = move[i][2];
+
+        if (movetype == 'tile') {
+            this.board[from]--;
+            this.board[to]++;
+        } else if (movetype == 'piece') {
+            this.board[this.curplayer][this.board[this.curplayer].indexOf(from)] = to;
+        } else if (movetype == 'capture') {
+            this.board[this.other[this.curplayer]].splice(this.board[this.other[this.curplayer]].indexOf(from), 1);
+        }
+    }
+
+    this.moves.push(move);
+    this.curplayer = this.other[this.curplayer];
+};
+
+Isopath.prototype.checkMoveLegality = function(move, mode) {
     if (move.length == 0)
         throw "move must have at least 1 half";
     if (move.length > 2)
         throw "move may never have more than 2 halves";
-
     if (move.length == 2 && move[0][0] == move[1][0])
         throw "can't play two halfmoves of the same type";
 
-    // TODO: more efficient way to test moves for legality without deep-copying the board
-    var newboard = JSON.parse(JSON.stringify(this.board));
+    var have_winner = false;
+    var captured_at = '';
+    var piece_to = '';
+    var piece_from = '';
+    var tile_to = '';
+    var tile_from = '';
 
     for (var i = 0; i < move.length; i++) {
-        var movetype = move[i][0];
-        var from = move[i][1];
-        var to = move[i][2];
+        let movetype = move[i][0];
+        let from = move[i][1];
+        let to = move[i][2];
 
         if (!this.is_place(from))
             throw "place " + from + " is not recognised";
@@ -176,62 +201,72 @@ Isopath.prototype.playMove = function(move, mode) {
             throw "can't move something from a tile to the same tile";
 
         if (movetype == 'tile') {
-            if (newboard[from] == 0)
+            if (this.board[from] == 0)
                 throw "can't move a tile from an empty place";
-            if (newboard[to] == 2)
+            if (this.board[to] == 2)
                 throw "can't move a tile to a full place";
             if (this.homerow[this.curplayer].indexOf(from) != -1 || this.homerow[this.curplayer].indexOf(to) != -1)
                 throw "can't build on your own home row";
-            if (newboard["white"].indexOf(from) != -1 || newboard["white"].indexOf(to) != -1 || newboard["black"].indexOf(from) != -1 || newboard["black"].indexOf(to) != -1)
-                throw "can't move a tile to/from a place with a piece on it";
-            newboard[from]--;
-            newboard[to]++;
+            if (piece_from != to && (piece_to == to || this.board["black"].indexOf(to) != -1 || this.board["white"].indexOf(to) != -1))
+                throw "can't move a tile to a place with a piece on it";
+            if (piece_from != from && (piece_to == from || this.board["black"].indexOf(from) != -1 || this.board["white"].indexOf(from) != -1))
+                throw "can't move a tile from a place with a piece on it";
+
+            tile_to = to;
+            tile_from = from;
 
         } else if (movetype == 'piece') {
-            if (this.piece_at(from, newboard) != this.curplayer)
+            if (this.piece_at(from) != this.curplayer)
                 throw "can't move a piece you don't have";
-            if (this.piece_at(to, newboard) != '')
+            if (this.piece_at(to) != '' && captured_at != to)
                 throw "can't move to an occupied place";
-            if (newboard[to] != this.playerlevel[this.curplayer])
-                throw "can't move a piece to a place of the wrong height";
-            newboard[this.curplayer][newboard[this.curplayer].indexOf(from)] = to;
+            if (this.playerlevel[this.curplayer] == 2) {
+                if ((this.board[to] != 2 || tile_from == to) && (this.board[to] != 1 || tile_to != to))
+                    throw "can't move a piece to a place of the wrong height";
+            } else {
+                if ((this.board[to] != 0 || tile_to == to) && (this.board[to] != 1 || tile_from != to))
+                    throw "can't move a piece to a place of the wrong height";
+            }
+
+            piece_to = to;
+            piece_from = from;
+
+            // moved on to his home row
+            if (this.homerow[this.other[this.curplayer]].indexOf(to) != -1)
+                have_winner = true;
 
         } else if (movetype == 'capture') {
-            if (this.piece_at(from, newboard) != this.other[this.curplayer])
+            if (this.piece_at(from) != this.other[this.curplayer])
                 throw "can't capture anything other than an enemy";
             var adjacent_men = 0;
             for (var j = 0; j < this.adjacent[from].length; j++) {
-                // check where curplayer's men were on this.board (instead of newboard)
+                // check where curplayer's men were on this.board (instead of this.board)
                 // because the piece must have been capturable at the start of this turn,
                 // i.e. you can't walk up to an enemy and capture him all in one turn
-                if (this.piece_at(this.adjacent[from][j], this.board) == this.curplayer)
+                if (this.piece_at(this.adjacent[from][j]) == this.curplayer)
                     adjacent_men++;
             }
             if (adjacent_men < 2)
                 throw "can't capture without 2 pieces threatening";
-            newboard[this.other[this.curplayer]].splice(newboard[this.other[this.curplayer]].indexOf(from), 1);
+
+            // captured his final man
+            if (this.board[this.other[this.curplayer]].length == 1)
+                have_winner = true;
+
+            captured_at = from;
 
         } else {
             throw "don't recognise move type " + movetype;
         }
     }
 
-    // just return now if we're only checking the (half-)move for legality
-    if (mode && mode == 'legality-test')
-        return;
-
-    if (move.length == 1 && !this.winner(newboard))
+    if (move.length == 1 && !have_winner && (!mode || mode != 'halfmove-check'))
         throw "move must have two halves except when the first half wins the game";
-
-    // didn't throw any exceptions, so let's commit to the move:
-    this.board = newboard;
-    this.moves.push(move);
-    this.curplayer = this.other[this.curplayer];
 };
 
-Isopath.prototype.isLegalMove = function(move) {
+Isopath.prototype.isLegalMove = function(move, mode) {
     try {
-        this.playMove(move, "legality-test");
+        this.checkMoveLegality(move, mode);
     } catch(e) {
         return false;
     };

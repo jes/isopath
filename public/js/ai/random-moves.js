@@ -17,7 +17,7 @@ RandomMoves.prototype.move = function() {
 
     // always capture a piece if we can
     for (var i = 0; i < ip.board[you].length; i++) {
-        if (ip.isLegalMove([["capture",ip.board[you][i]]])) {
+        if (ip.isLegalMove([["capture",ip.board[you][i]]], 'halfmove-check')) {
             move.push(["capture",ip.board[you][i]]);
             break; // break because you're only allowed one capture per turn
         }
@@ -30,7 +30,7 @@ RandomMoves.prototype.move = function() {
         // move a tile from a random location to another random location
         do {
             thismove = [["tile",this.randplace(),this.randplace()]];
-        } while(!ip.isLegalMove(move.concat(thismove)));
+        } while(!ip.isLegalMove(move.concat(thismove), 'halfmove-check'));
 
         // only move a piece if we didn't already capture a piece
         if (move.length == 0) {

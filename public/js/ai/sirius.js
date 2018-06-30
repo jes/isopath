@@ -390,7 +390,7 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         if (!isopath.isLegalMove(candidate_moves[i]))
             continue;
 
-        isopath.playMove(candidate_moves[i]);
+        isopath.playMove(candidate_moves[i], 'no-legality-check');
         var response = this.dfs(isopath, depth_remaining-1, -beta, -alpha);
         isopath.undoMove();
 
