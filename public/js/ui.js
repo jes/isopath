@@ -339,4 +339,24 @@ $(document).ready(function() {
             $('#lobby').hide();
         });
     }
+
+    if (window.location.hash == '#rules') {
+        $('#rulesModal').modal('show');
+    }
+    $('#rulesModal').on('show.bs.modal', function() {
+        window.location.hash = '#rules';
+    });
+    $('#rulesModal').on('hide.bs.modal', function() {
+        window.location.hash = '';
+    });
+
+    if (window.location.hash == '#about') {
+        $('#about').modal('show');
+    }
+    $('#aboutModal').on('show.bs.modal', function() {
+        window.location.hash = '#about';
+    });
+    $('#aboutModal').on('hide.bs.modal', function() {
+        window.location.hash = '';
+    });
 });
