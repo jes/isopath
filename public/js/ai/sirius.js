@@ -4,13 +4,13 @@
  *  - algorithm is mostly as intended, but efficiency is poor
  */
 
-function FirstSerious(isopath) {
+function Sirius(isopath) {
     this.isopath = isopath;
     this.saved_moves = [];
     this.transpos = {nelems: 0};
 }
 
-FirstSerious.piece_score = function(place, colour) {
+Sirius.piece_score = function(place, colour) {
     if (colour == 'black') {
         // just invert the location and then score as if it's white
         place = place.replace('a', 'G').replace('b', 'F').replace('c', 'E')
@@ -22,9 +22,9 @@ FirstSerious.piece_score = function(place, colour) {
     return 100 + row*row*10;
 };
 
-FirstSerious.searchdepth = 5;
-FirstSerious.maxscore = 100000;
-FirstSerious.prototype.evaluate = function(isopath) {
+Sirius.searchdepth = 5;
+Sirius.maxscore = 100000;
+Sirius.prototype.evaluate = function(isopath) {
     // one score for tile values for each player
     var whitetiles = 0;
 
@@ -59,7 +59,7 @@ FirstSerious.prototype.evaluate = function(isopath) {
     var whitepieces = 0;
     for (var i = 0; i < isopath.board['white'].length; i++) {
         var place = isopath.board['white'][i];
-        whitepieces += FirstSerious.piece_score(place, 'white');
+        whitepieces += Sirius.piece_score(place, 'white');
         // score us some points for ability to move
         for (var j = 0; j < isopath.adjacent[place]; j++) {
             whitepieces += isopath.board[isopath.adjacent[place][j]];
@@ -67,7 +67,7 @@ FirstSerious.prototype.evaluate = function(isopath) {
     }
     for (var i = 0; i < isopath.board['black'].length; i++) {
         var place = isopath.board['black'][i];
-        whitepieces -= FirstSerious.piece_score(place, 'black');
+        whitepieces -= Sirius.piece_score(place, 'black');
         // score us some points for ability to move
         for (var j = 0; j < isopath.adjacent[place]; j++) {
             whitepieces -= (2-isopath.board[isopath.adjacent[place][j]]);
@@ -82,7 +82,7 @@ FirstSerious.prototype.evaluate = function(isopath) {
     // combine those 2 scores into an evaluation
     var score = tilescore + piecescore;
 
-    if (score > FirstSerious.maxscore || score < -FirstSerious.maxscore)
+    if (score > Sirius.maxscore || score < -Sirius.maxscore)
         console.log("Generated score " + score + " out of range; adjust maxscore?");
 
     return score;
@@ -90,7 +90,7 @@ FirstSerious.prototype.evaluate = function(isopath) {
 
 // TODO: since this function is only used to pick places to take/remove tiles,
 // replace it with something that will be more intelligent about it
-FirstSerious.prototype.random_location_at_height = function(isopath, h) {
+Sirius.prototype.random_location_at_height = function(isopath, h) {
     var p = isopath.all_places;
     var possible = [];
 
@@ -120,7 +120,7 @@ FirstSerious.prototype.random_location_at_height = function(isopath, h) {
     return possible[Math.floor(Math.random() * possible.length)];
 };
 
-FirstSerious.prototype.strboard = function(isopath) {
+Sirius.prototype.strboard = function(isopath) {
     var s = '';
     for (var i = 0; i < isopath.all_places.length; i++) {
         s += "" + isopath.board[isopath.all_places[i]];
@@ -137,7 +137,7 @@ FirstSerious.prototype.strboard = function(isopath) {
     return s;
 };
 
-FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
+Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     // if they've just won, we've lost
     if (isopath.winner()) {
         throw "game shouldn't have ended";
@@ -181,7 +181,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         if (adjacent_men >= 2) {
             return {
                 move: [["capture",isopath.board[you][0]]],
-                score: FirstSerious.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
+                score: Sirius.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
             };
         }
     }
@@ -210,13 +210,13 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
                     }
                     return {
                         move: [["tile",tilefrom,tileto],["piece",from,to]],
-                        score: FirstSerious.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
+                        score: Sirius.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
                     };
                 } else if (isopath.board[to] == isopath.playerlevel[me]) {
                     // no need to move a tile, step straight there
                     return {
                         move: [["piece",from,to]],
-                        score: FirstSerious.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
+                        score: Sirius.maxscore - 20 + depth_remaining, // "- 20 + depth_remaining" means we prefer an earlier win over a later one
                     };
                 }
             }
@@ -335,7 +335,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
     var best = {
         move: [],
-        score: -FirstSerious.maxscore,
+        score: -Sirius.maxscore,
     };
 
     //console.log("Got " + candidate_moves.length + " moves to try");
@@ -372,7 +372,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     // these go at the front so we try them first
     // this basically gives us twice as many choices for tile placement on the piece moves
     // that are likely to be best (one from last turn's search, one from this search)
-    if (depth_remaining == FirstSerious.searchdepth) {
+    if (depth_remaining == Sirius.searchdepth) {
         candidate_moves = this.saved_moves.concat(candidate_moves);
         this.saved_moves = [];
     }
@@ -396,7 +396,7 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
         // remember what we thought our best response was (for each possibility)
         // so that we can try those next time
-        if (depth_remaining == FirstSerious.searchdepth-1) {
+        if (depth_remaining == Sirius.searchdepth-1) {
             this.saved_moves.push(response.best);
         }
 
@@ -468,12 +468,12 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     return best;
 }
 
-FirstSerious.prototype.move = function() {
-    var best = this.dfs(this.isopath, FirstSerious.searchdepth, -FirstSerious.maxscore, FirstSerious.maxscore);
+Sirius.prototype.move = function() {
+    var best = this.dfs(this.isopath, Sirius.searchdepth, -Sirius.maxscore, Sirius.maxscore);
     console.log(best);
     return best.move;
 };
 
-IsopathAI.register_ai('first-serious', 'First serious attempt (WIP)', function(isopath) {
-    return new FirstSerious(isopath);
+IsopathAI.register_ai('sirius', 'Sirius', function(isopath) {
+    return new Sirius(isopath);
 });
