@@ -344,28 +344,6 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         }
     }
 
-    // try blocking an enemy piece
-    for (var i = 0; i < isopath.board[you].length; i++) {
-        var adjs = isopath.adjacent[isopath.board[you][i]];
-        for (var k = 0; k < adjs.length; k++) {
-            var adj_opponent = adjs[k];
-            if (isopath.board[adj_opponent] != isopath.playerlevel[me]) {
-                var m, cnt;
-                do {
-                    if (isopath.playerlevel[me] == 2) {
-                        // add a tile here
-                        m = [["tile",randtilefrom(),adj_opponent],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]];
-                    } else {
-                        // remove a tile here
-                        m = [["tile",adj_opponent,randtileto()],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]];
-                    }
-                } while (!isopath.isLegalMove(m) && ++cnt < 5);
-                m.push("blockenemy");
-                candidate_moves.push(m);
-            }
-        }
-    }
-
     // TODO: track which "generator" the most decisive moves come from, and increase the
     // amount of moves that that generator is allowed to generate?
 
@@ -392,6 +370,17 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         if (b[1] == undefined)
             return -1;
 
+        var quality = {
+            capture: 10,
+            tilemoveto1: 9,
+            cantmovehere: 8,
+            tilemoveto0: 7, // XXX: to0 and to2 should be swapped if playing as black
+            tilemoveto2: 6,
+        };
+        if (a[3] != b[3])
+            return quality[b[3]] - quality[a[3]];
+
+
         // if not a capture, _[0] is a tile move and _[1] is a piece move
 
         // try to advance towards the opponent's home row
@@ -404,27 +393,13 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         return 0;
     });
 
-    // add on the best moves from last time (they won't all be legal, but that's fine)
-    // these go at the front so we try them first
-    // this basically gives us twice as many choices for tile placement on the piece moves
-    // that are likely to be best (one from last turn's search, one from this search)
-    if (depth_remaining == this.searchdepth) {
-        candidate_moves = this.saved_moves.concat(candidate_moves);
-        this.saved_moves = [];
-    }
-
     var tried = {};
-    var best_moves = [];
     // now try each of the candidate moves, and return the one that scores best
     for (var i = 0; i < candidate_moves.length; i++) {
         var movetype = 'unknown';
         if (candidate_moves[i].length == 3) {
             movetype = candidate_moves[i].pop();
         }
-
-        if (!this.triedmovetype[movetype])
-            this.triedmovetype[movetype] = 0;
-        this.triedmovetype[movetype]++;
 
         // don't test duplicate moves
         if (tried[JSON.stringify(candidate_moves[i])])
@@ -435,15 +410,13 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         if (!isopath.isLegalMove(candidate_moves[i]))
             continue;
 
+        if (!this.triedmovetype[movetype])
+            this.triedmovetype[movetype] = 0;
+        this.triedmovetype[movetype]++;
+
         isopath.playMove(candidate_moves[i], 'no-legality-check');
         var response = this.dfs(isopath, depth_remaining-1, -beta, -alpha);
         isopath.undoMove();
-
-        // remember what we thought our best response was (for each possibility)
-        // so that we can try those next time
-        if (depth_remaining == this.searchdepth-1) {
-            this.saved_moves.push(response.move.concat("savedmove"));
-        }
 
         if (-response.score > best.score || best.move.length == 0) {
             best = {
@@ -457,36 +430,6 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             alpha = -response.score;
         if (alpha >= beta)
             break;
-
-        // once we've searched and found the 2 or 3 best moves (assuming we didn't alpha-cutoff),
-        // try recombining the parts of those top moves to see if we can find a better move
-        // (we still won't bother searching duplicates)
-        if (best_moves.length < 3 || -response.score > best_moves[2].score) {
-            best_moves.push({
-                score: -response.score,
-                move: candidate_moves[i],
-            });
-
-            best_moves.sort(function(a,b) { return a.score-b.score; });
-            if (best_moves.length > 3)
-                best_moves.pop();
-         }
-         if (i == candidate_moves.length-1 && best_moves.length == 3) {
-            for (var j = 0; j < 3; j++) {
-                for (var k = 0; k < 3; k++) {
-                    for (var l = 0; l < 3; l++) {
-                        // most of these attempts won't be legal
-                        for (var m = 0; m < 2; m++) {
-                            for (var n = 0; n < 2; n++) {
-                                for (var o = 0; o < 2; o++) {
-                                    candidate_moves.push([['tile',best_moves[j].move[m][1],best_moves[k].move[n][2]], best_moves[l].move[o],"recomb"]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-         }
     }
 
     // jescache...
