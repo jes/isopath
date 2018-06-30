@@ -182,7 +182,7 @@ $(document).ready(function() {
 
         $('#undo-move').click(function() {
             isopath.undoMove();
-            if (has_ai && (!isopath.winner() || ai[isopath.winner()])) // undo 2 moves when playing against ai, except where the human won, because we need to undo the ai move as well as the human move
+            if ((ai['black'] || ai['white']) && (!isopath.winner() || ai[isopath.winner()])) // undo 2 moves when playing against ai, except where the human won, because we need to undo the ai move as well as the human move
                 isopath.undoMove();
             ingame = true;
             view.reset_move();
