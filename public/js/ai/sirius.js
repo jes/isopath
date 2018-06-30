@@ -95,7 +95,6 @@ Sirius.prototype.random_location_at_height = function(isopath, h) {
     var p = isopath.all_places;
     var possible = [];
 
-
     for (var i = 0; i < p.length; i++) {
         // needs to be an allowable height, and can't have a piece on it
         if (h.indexOf(isopath.board[p[i]]) == -1 || isopath.piece_at(p[i]) != '')
@@ -120,7 +119,7 @@ Sirius.prototype.random_location_at_height = function(isopath, h) {
     if (possible.length == 0)
         return 'xx';
 
-    return possible[Math.floor(Math.random() * possible.length)];
+    return possible;
 };
 
 Sirius.prototype.strboard = function(isopath) {
@@ -144,6 +143,18 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     // if they've just won, we've lost
     if (isopath.winner()) {
         throw "game shouldn't have ended";
+    }
+
+    // TODO: instead of re-building these at each invocation of dfs(), just keep
+    // track of it every time we play or undo a move
+    var possiblefrom = this.random_location_at_height(isopath, [1,2]);
+    var possibleto = this.random_location_at_height(isopath, [0,1]);
+
+    function randtilefrom() {
+        return possiblefrom[Math.floor(Math.random() * possiblefrom.length)];
+    }
+    function randtileto() {
+        return possibleto[Math.floor(Math.random() * possibleto.length)];
     }
 
     alphaorig = alpha;
@@ -203,12 +214,12 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
                     if (isopath.playerlevel[me] == 2) {
                         tileto = to;
                         do {
-                            tilefrom = this.random_location_at_height(isopath, [1,2]);
+                            tilefrom = randtilefrom();
                         } while (tilefrom == tileto);
                     } else {
                         tilefrom = to;
                         do {
-                            tileto = this.random_location_at_height(isopath, [0,1]);
+                            tileto = randtileto();
                         } while (tileto == tilefrom);
                     }
                     return {
@@ -252,8 +263,8 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
         if (adjacent_men >= 2) {
             var tileto, tilefrom;
             do {
-                tilefrom = this.random_location_at_height(isopath,[1,2]);
-                tileto = this.random_location_at_height(isopath,[0,1]);
+                tilefrom = randtilefrom();
+                tileto = randtileto();
             } while (tileto == tilefrom);
             candidate_moves.push([["capture",isopath.board[you][i]],["tile",tilefrom,tileto]]);
         }
@@ -288,25 +299,30 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             // need to add/remove a tile in order to move here
             if (isopath.playerlevel[me] == 2) {
                 // place a tile here
-                tile_moves.push(["tile",this.random_location_at_height(isopath, [1,2]),to]);
+                tile_moves.push(["tile",randtilefrom(),to]);
             } else {
                 // remove the tile here
-                tile_moves.push(["tile",to,this.random_location_at_height(isopath, [0,1])]);
+                tile_moves.push(["tile",to,randtileto()]);
             }
 
         } else if (isopath.board[to] == isopath.playerlevel[me]) {
             // can move here straight away, need to move a tile elsewhere
-            tile_moves.push(["tile",this.random_location_at_height(isopath, [1,2]),this.random_location_at_height(isopath, [0,1])]);
+            var tileto, tilefrom;
+            do {
+                tilefrom = randtilefrom();
+                tileto = randtileto();
+            } while (tileto == tilefrom);
+            tile_moves.push(["tile",tilefrom,tileto]);
 
         } else if (already_valid_piece_moves.length > 0) {
             // can't move here at all
             // add/remove a tile so that we might be able to move here next turn
             if (isopath.playerlevel[me] == 2) {
                 // place a tile here
-                candidate_moves.push([["tile",this.random_location_at_height(isopath, [1,2]),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",randtilefrom(),to],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
             } else {
                 // remove the tile here
-                candidate_moves.push([["tile",to,this.random_location_at_height(isopath, [0,1])],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                candidate_moves.push([["tile",to,randtileto()],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
             }
         }
 
@@ -324,10 +340,10 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             if (isopath.board[adj_opponent] != isopath.playerlevel[me]) {
                 if (isopath.playerlevel[me] == 2) {
                     // add a tile here
-                    candidate_moves.push([["tile",this.random_location_at_height(isopath, [1,2]),adj_opponent],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                    candidate_moves.push([["tile",randtilefrom(),adj_opponent],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
                 } else {
                     // remove a tile here
-                    candidate_moves.push([["tile",adj_opponent,this.random_location_at_height(isopath, [0,1])],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
+                    candidate_moves.push([["tile",adj_opponent,randtileto()],already_valid_piece_moves[Math.floor(Math.random() * already_valid_piece_moves.length)]]);
                 }
             }
         }
