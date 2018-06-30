@@ -7,6 +7,7 @@
 function FirstSerious(isopath) {
     this.isopath = isopath;
     this.saved_moves = [];
+    this.transpos = {nelems: 0};
 }
 
 FirstSerious.piece_score = function(place, colour) {
@@ -114,10 +115,50 @@ FirstSerious.prototype.random_location_at_height = function(isopath, h) {
     return possible[Math.floor(Math.random() * possible.length)];
 };
 
+FirstSerious.prototype.strboard = function(isopath) {
+    var s = '';
+    for (var i = 0; i < isopath.all_places.length; i++) {
+        s += "" + isopath.board[isopath.all_places[i]];
+    }
+    s += ";";
+    for (var i = 0; i < isopath.board['white'].length; i++) {
+        s += isopath.board['white'][i];
+    }
+    s += ";";
+    for (var i = 0; i < isopath.board['black'].length; i++) {
+        s += isopath.board['black'][i];
+    }
+    s += ";" + isopath.curplayer;
+    return s;
+};
+
 FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     // if they've just won, we've lost
     if (isopath.winner()) {
         throw "game shouldn't have ended";
+    }
+
+    alphaorig = alpha;
+
+    // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning_and_transposition_tables
+    var trans = this.transpos[this.strboard(isopath)];
+    if (trans && trans.depth_remaining >= depth_remaining) {
+        if (trans.flag == 'exact') {
+            return {
+                score: trans.score,
+                move: trans.move,
+            };
+        } else if (trans.flag == 'lowerbound' && trans.score > alpha) {
+            alpha = trans.score;
+        } else if (trans.flag == 'upperboard' && trans.score < beta) {
+            beta = trans.score;
+        }
+        if (alpha >= beta) {
+            return {
+                score: trans.score,
+                move: trans.move,
+            };
+        }
     }
 
     var me = isopath.curplayer;
@@ -397,6 +438,27 @@ FirstSerious.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
             }
          }
     }
+
+    // jescache...
+    if (this.transpos.nelems > 100000) {
+        this.transpos = {nelems: 0};
+    }
+
+    // https://en.wikipedia.org/wiki/Negamax#Negamax_with_alpha_beta_pruning_and_transposition_tables
+    var ttentry = {
+        score: best.score,
+        move: best.move,
+        depth_remaining: depth_remaining,
+    };
+    if (best.score <= alphaorig) {
+        ttentry.flag = 'upperbound';
+    } else if (best.score >= beta) {
+        ttentry.flag = 'lowerbound';
+    } else {
+        ttentry.flag = 'exact';
+    }
+    this.transpos[this.strboard(isopath)] = ttentry;
+    this.transpos.nelems++;
 
     return best;
 }
