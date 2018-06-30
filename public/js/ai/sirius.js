@@ -469,7 +469,7 @@ Sirius.prototype.move = function() {
 };
 
 IsopathAI.register_ai('sirius', 'Sirius', function(isopath) {
-    return new Sirius(isopath, 5);
+    return new Sirius(isopath, 6);
 });
 IsopathAI.register_ai('sirius-fast', 'Sirius (weaker)', function(isopath) {
     return new Sirius(isopath, 4);
