@@ -2,13 +2,11 @@
 $(document).ready(function() {
     var ws; // an IsopathWS from isopath-ws.js
     var view; // an IsopathView from isopath-view.js
-    var isopath; // an Isopath from isopath.js (only when playing a local game)
 
     var ingame = false;
     var ourturn = false;
     var connected = false;
     var localgame = false;
-    var has_ai = false;
 
     function ready() {
         $('#status').text('Ready.');
@@ -161,15 +159,6 @@ $(document).ready(function() {
         }, 60000);
     }
 
-    $('#undo-move').click(function() {
-        ingame = true;
-        isopath.undoMove();
-        if (has_ai) // undo 2 moves when playing against ai
-            isopath.undoMove();
-        view.reset_move();
-        redraw();
-    });
-
     $('#new-local-game').click(function() {
         $('#lobby').hide();
         $('#status').hide();
@@ -182,18 +171,23 @@ $(document).ready(function() {
         var time = {white: 0, black: 0};
         var movestarted;
 
-        has_ai = false;
-
         // assign ai players, if any
         var players = {white:1, black:1};
         for (player in players) {
             var type = $('#' + player + '-player').val();
-            if (type != 'human') {
+            if (type != 'human')
                 ai[player] = new IsopathAI(type, isopath);
-                has_ai = true;
-            }
             $('#' + player + '-name').text($('#' + player + '-player option:selected').text());
         }
+
+        $('#undo-move').click(function() {
+            isopath.undoMove();
+            if (has_ai && (!isopath.winner() || ai[isopath.winner()])) // undo 2 moves when playing against ai, except where the human won, because we need to undo the ai move as well as the human move
+                isopath.undoMove();
+            ingame = true;
+            view.reset_move();
+            redraw();
+        });
 
         function nextMove() {
             if (!ingame)
