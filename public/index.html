@@ -13,13 +13,103 @@
             <h1>Isopath</h1>
         </div>
         <div style="float:right; padding-top: 20px">
+            <a id="about" href="#" data-toggle="modal" data-target="#rulesModal">Rules</a>
             <a id="about" href="#" data-toggle="modal" data-target="#aboutModal">About</a>
         </div>
         <div style="clear:both"></div>
         <hr>
     </div>
 
-    <!-- Modal -->
+    <div class="modal fade" id="rulesModal" tabindex="-1" role="dialog" aria-labelledby="rulesModalLabel" aria-hidden="true">
+      <div class="modal-lg modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="rulesModalLabel">Rules</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+<p>Isopath is played on a hexagonal grid with 4 tiles to a side. Each player starts out with 4 pieces.
+In pocket83's rule sheets (<a href="https://postimg.cc/image/5sin82q1f/">sheet 1</a>, <a href="https://postimg.cc/image/yjfgy4vv7/">sheet 2</a>, <a href="https://postimg.cc/image/p05s4o8cz/">sheet 3</a>), he also references a variant with 5 tiles to a side, where each player starts out
+with 5 pieces.</p>
+
+<p><a href="https://img.jes.xxx/1787"><img style="max-width: 300px" src="https://img.jes.xxx/1787"></a></p>
+
+<p>Each player's pieces start on rows at opposite sides of the board, standing on tile stacks of the correct height (2 tiles
+for white, 0 tiles for black). All of the other spaces have exactly 1 tile on.</p>
+
+<h3>1. A move</h3>
+
+<p>Players alternate taking turns to move.</p>
+
+<p>Each move consists of 2 parts. Every move must consist of the full 2 parts, except where the first
+part wins the game. It is not permissible to "pass" or skip either one part of the move or the entire turn.
+The 2 move parts must not be of the same type, e.g. you can't move 2 pieces in the same turn.</p>
+
+<p>It is not permissible to make a first move part that leaves you unable to make a legal second move part.</p>
+
+<h4>Tile move</h4>
+
+<p>A tile is moved from one space that does not have a piece on it to another space that does not have
+a piece on it.</p>
+
+<p>Each space on the board always has 0, 1, or 2 tiles on it. You can't go below 0 or above 2.</p>
+
+<h4>Piece move</h4>
+
+<p>A piece is moved to any adjacent and unoccupied tile of the correct height. White can only place pieces on a stack of 2
+tiles above the game board, and black can only place pieces directly on the game board.</p>
+
+<h4>Capture</h4>
+
+<p>Player A may capture player B's piece if, at the start of player A's turn, player B's piece is adjacent to
+2 or more of player A's pieces. Player B's piece is then removed from the board. It is not mandatory
+to capture a piece that is capturable. It is not permissible to capture 2 pieces in one turn.</p>
+
+<h3>2. Lateral teleport</h3>
+
+<p>With tiles labelled like so:
+
+<p><a href="https://img.jes.xxx/1785"><img style="max-width: 300px" src="https://img.jes.xxx/1785"></a></p>
+
+<p>The tile pairs (a1,a4), (d1,d7), and (g1,g4) are considered adjacent for all purposes. This means it is possible to move
+a piece between a1 and a4, between d1 and d7, and between g1 and g4. It also means a piece on d1 or d7 can
+potentially be captured by a threat on the other edge of the board.</p>
+
+<p>For example:</p>
+
+<p><a href="https://img.jes.xxx/1788"><img style="max-width: 300px" src="https://img.jes.xxx/1788"></a></p>
+
+<p>If it's black's turn to move, he can capture white's piece.</p>
+
+<p>It is not possible to teleport diagonally. For example, from d1 to g4 or from a1 to g4. It is also not possible to teleport
+longitudinally, e.g. from a1 to g1.</p>
+
+<h3>3. Home row</h3>
+
+<p>A player's "home row" is the set of 4 spaces that that player's pieces start on.</p>
+
+<p>A player may never build or dig on his own home row, even if doing so would help the opponent.</p>
+
+<h3>4. Victory condition</h3>
+
+<p>A player wins the game as soon as he places one of his tiles on the opponent's home row.
+Even if the opponent would be able to immediately capture the winning piece, he is unable to as he has
+already lost and therefore does not get another turn.</p>
+
+<p>Not stated in pocket83's original rules (but what I believe is an important clarification): a player also
+wins as soon as he captures his opponent's final piece, as that would leave the opponent unable to move.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
     <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -36,7 +126,7 @@
             <p>Watch <a href="https://www.youtube.com/watch?v=Wz6q03b8R6U&t=15m45s">pocket83's original video</a> to learn more about
             the game (rules begin at 15:45).</p>
             <p>He also released rule sheets:
-            <a target="_blank" href="/img/rule_sheet_1.png">sheet 1</a>, <a target="_blank" href="/img/rule_sheet_2.png">sheet 2</a>, <a target="_blank" href="/img/rule_sheet_3.png">sheet 3</a>.</p>
+            <a target="_blank" href="img/rule_sheet_1.png">sheet 1</a>, <a target="_blank" href="img/rule_sheet_2.png">sheet 2</a>, <a target="_blank" href="img/rule_sheet_3.png">sheet 3</a>.</p>
             <p>Please email <a href="mailto:james@incoherency.co.uk">james@incoherency.co.uk</a> if you want to get in touch.</p>
           </div>
           <div class="modal-footer">
