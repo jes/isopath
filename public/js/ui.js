@@ -179,6 +179,8 @@ $(document).ready(function() {
 
         isopath = new Isopath();
         var ai = {};
+        var time = {white: 0, black: 0};
+        var movestarted;
 
         has_ai = false;
 
@@ -196,6 +198,12 @@ $(document).ready(function() {
         function nextMove() {
             if (!ingame)
                 return;
+
+            if (movestarted) {
+                time[isopath.other[isopath.curplayer]] += (Date.now() - movestarted);
+            }
+            console.log("White: " + (time.white / 1000) + "s; Black: " + (time.black / 1000) + "s");
+            movestarted = Date.now();
 
             if (isopath.winner())
                 game_over(isopath.winner());
