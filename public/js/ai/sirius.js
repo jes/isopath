@@ -90,26 +90,29 @@ Sirius.prototype.evaluate = function(isopath) {
 
 // TODO: since this function is only used to pick places to take/remove tiles,
 // replace it with something that will be more intelligent about it
+// XXX: h should be either [0,1] when placing a tile or [1,2] when removing one
 Sirius.prototype.random_location_at_height = function(isopath, h) {
     var p = isopath.all_places;
     var possible = [];
 
-    var type;
-    if (h.indexOf(0) != -1)
-        type = 'put';
-    else
-        type = 'take';
 
     for (var i = 0; i < p.length; i++) {
         // needs to be an allowable height, and can't have a piece on it
         if (h.indexOf(isopath.board[p[i]]) == -1 || isopath.piece_at(p[i]) != '')
             continue;
-        // can't build on own home row
+        // can't touch our own home row
         if (isopath.homerow[isopath.curplayer].indexOf(p[i]) != -1)
             continue;
-        // don't want to take from opponent home row
-        if (type == 'take' && isopath.homerow[isopath.other[isopath.curplayer]].indexOf(p[i]) != -1)
-            continue;
+
+        if (isopath.playerlevel[isopath.curplayer] == 2) {
+            // white doesn't want to take off black home row
+            if (h[0] != 0 && isopath.homerow[isopath.other[isopath.curplayer]].indexOf(p[i]) != -1)
+                continue;
+        } else {
+            // black doesn't want to place on white home row
+            if (h[0] == 0 && isopath.homerow[isopath.other[isopath.curplayer]].indexOf(p[i]) != -1)
+                continue;
+        }
         possible.push(p[i]);
     }
 
