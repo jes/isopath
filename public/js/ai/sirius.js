@@ -461,7 +461,7 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 }
 
 Sirius.prototype.move = function() {
-    var best = this.dfs(this.isopath, this.searchdepth, -Sirius.maxscore, Sirius.maxscore);
+    var best = this.dfs(this.isopath.clone(), this.searchdepth, -Sirius.maxscore, Sirius.maxscore);
     console.log(best);
     console.log(this.bestmovetype);
     console.log(this.triedmovetype);
