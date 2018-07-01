@@ -227,6 +227,8 @@ Isopath.prototype.checkMoveLegality = function(move, mode) {
                 if ((this.board[to] != 0 || tile_to == to) && (this.board[to] != 1 || tile_from != to))
                     throw "can't move a piece to a place of the wrong height";
             }
+            if (this.adjacent[from].indexOf(to) == -1)
+                throw "can't move to a non-adjacent place";
 
             piece_to = to;
             piece_from = from;
