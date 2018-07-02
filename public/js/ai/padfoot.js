@@ -168,14 +168,8 @@ Padfoot.prototype.instawin_move = function(isopath) {
 
     // if we can win the game instantly by capturing their final piece, do so
     if (isopath.board[you].length == 1) {
-        var adjacent_men = 0;
-        var adjs = isopath.adjacent[isopath.board[you][0]];
-        for (var i = 0; i < adjs.length; i++) {
-            if (isopath.piece_at(adjs[i]) == me)
-                adjacent_men++;
-        }
-
-        if (adjacent_men >= 2) {
+        var opp = isopath.board[you][0];
+        if (this.num_adjacent(isopath, opp) >= 2) {
             return {
                 move: [["capture",isopath.board[you][0]]],
                 score: Padfoot.maxscore,
@@ -197,14 +191,14 @@ Padfoot.prototype.instawin_move = function(isopath) {
                     // XXX: this tile selection code should be shorter
                     if (isopath.playerlevel[me] == 2) {
                         tileto = to;
-                        var tilefroms = this.take_tiles(3);
+                        var tilefroms = this.take_tiles(2);
                         if (tilefroms[0] == tileto)
                             tilefrom = tilefroms[1];
                         else
                             tilefrom = tilefroms[0];
                     } else {
                         tilefrom = to;
-                        var tiletos = this.take_tiles(3);
+                        var tiletos = this.place_tiles(2);
                         if (tiletos[0] == tilefrom)
                             tileto = tiletos[1];
                         else
