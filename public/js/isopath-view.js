@@ -34,6 +34,8 @@ IsopathView.prototype.clicked_on_hex = function(place) {
         this_place_has = '';
     if (this.move.length > 0 && this.move[0][0] == 'piece' && this.move[0][2] == place)
         this_place_has = this.opts.isopath.curplayer;
+    if (this.move.length > 0 && this.move[0][0] = 'capture' && this.move[0][1] == place)
+        this_place_has = '';
 
     if (this.clickmode == 'piece') {
         if (this.opts.isopath.isLegalMove(this.move.concat([["piece",this.movefrom,place]]), 'halfmove-check')) {
