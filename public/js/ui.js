@@ -180,6 +180,7 @@ $(document).ready(function() {
             $('#' + player + '-name').text($('#' + player + '-player option:selected').text());
         }
 
+        $('#undo-move').off('click');
         $('#undo-move').click(function() {
             isopath.undoMove();
             if ((ai['black'] || ai['white']) && (!isopath.winner() || !ai[isopath.winner()])) // undo 2 moves when playing against ai, except where the human won, because we need to undo the ai move as well as the human move
