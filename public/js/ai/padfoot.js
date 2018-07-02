@@ -5,8 +5,9 @@
  *    https://incoherency.co.uk/blog/stories/isopath-intro.html
  */
 
-function Padfoot(isopath) {
+function Padfoot(isopath, constants) {
     this.isopath = isopath;
+    this.constants = constants;
     this.searchdepth = 2;
     this.transpos = {nelems: 0};
     this.pathscorememo = {nelems: 0};
@@ -32,15 +33,25 @@ Padfoot.prototype.evaluate = function(isopath) {
     var myscore = this.paths_score(isopath, isopath.curplayer);
     var yourscore = this.paths_score(isopath, isopath.other[isopath.curplayer]);
 
-    myscore += 50 * isopath.board[isopath.curplayer].length;
-    yourscore += 50 * isopath.board[isopath.other[isopath.curplayer]].length;
+    myscore += this.constants[5] * isopath.board[isopath.curplayer].length;
+    yourscore += this.constants[5] * isopath.board[isopath.other[isopath.curplayer]].length;
 
-    return myscore - yourscore;
+    // pieces under threat
+    for (var i = 0; i < 4; i++) {
+        if (i < isopath.board[isopath.curplayer].length) {
+            if (this.num_adjacent(isopath, isopath.other[isopath.curplayer], isopath.board[isopath.curplayer][i]) >= 2)
+                yourscore += this.constants[8];
+        }
+        if (i < isopath.board[isopath.other[isopath.curplayer]].length) {
+            if (this.num_adjacent(isopath, isopath.curplayer, isopath.board[isopath.other[isopath.curplayer]][i]) >= 2)
+                myscore += this.constants[8];
+        }
+    }
 
     if (myscore > yourscore)
-        return myscore - Math.floor(yourscore * 0.1);
+        return myscore - Math.floor(yourscore * this.constants[6]);
     else
-        return Math.floor(myscore * 0.1) - yourscore;
+        return Math.floor(myscore * this.constants[6]) - yourscore;
 };
 
 // shortest path:
@@ -50,19 +61,19 @@ Padfoot.prototype.cost = function(isopath, player, place) {
 
     // cost for having to move pieces and tiles
     if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
-        cost = 1;
+        cost = this.constants[0];
     else if (isopath.board[place] == 1)
-        cost = 20;
+        cost = this.constants[1];
     else
-        cost = 100;
+        cost = this.constants[2];
 
     // 100 cost if the space is threatened (as long as it's not a game-winning tile)
     if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
-        cost = 100;
+        cost = this.constants[3];
 
     // 100 cost if the space is occupied
     if (isopath.piece_at(place) != '')
-        cost = 100;
+        cost = this.constants[4];
 
     return cost;
 };
@@ -88,8 +99,6 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     // dijkstra then gives us the cost of the paths from src to all points
     // we choose the cost as the minimum cost from src to any point in dstset
     // the *score* of the path is then 100-cost
-    // TODO: instead of hardcoding the constants, make them part of the constructor,
-    // and then run a tournament with a genetic algorithm to find the optimal constants
 
     // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
     var q = [];
@@ -133,11 +142,10 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
 
     if (this.pathscorememo.nelems > 100000)
         this.pathscorememo = {nelems:0};
-
-    this.pathscorememo[key] = 500 - pathlength;
+    this.pathscorememo[key] = this.constants[7] - pathlength;
 
     // a shorter path scores higher
-    return 500 - pathlength;
+    return this.constants[7] - pathlength;
 };
 
 Padfoot.prototype.paths_score = function(isopath, player) {
@@ -231,8 +239,8 @@ Padfoot.prototype.candidate_moves = function(isopath) {
     // TODO: we should also be able to remove/place a tile on the space we just
     //       moved a man off, in the case of "can move here immediately", or
     //       captured a man from, in the case of a capture
-    var tilefroms = this.take_tiles(isopath, 3);
-    var tiletos = this.place_tiles(isopath, 3);
+    var tilefroms = this.take_tiles(isopath, 2);
+    var tiletos = this.place_tiles(isopath, 2);
 
     // piece moves:
     for (var i = 0; i < isopath.board[me].length; i++) {
@@ -249,7 +257,7 @@ Padfoot.prototype.candidate_moves = function(isopath) {
                     if (tilefrom == pieceto)
                         continue;
                     for (var l = 0; l < tiletos.length; l++) {
-                        var tileto = tiletos[k];
+                        var tileto = tiletos[l];
                         if (tilefrom != tileto && tileto != pieceto)
                             moves.push([['piece', piecefrom, pieceto], ['tile', tilefrom, tileto]]);
                     }
@@ -290,7 +298,7 @@ Padfoot.prototype.candidate_moves = function(isopath) {
 
         // capturing this man & then moving a piece
         for (var j = 0; j < immediate_piece_moves.length; j++) {
-            moves.push([['capture', opp], immediate_piece_moves[i]]);
+            moves.push([['capture', opp], immediate_piece_moves[j]]);
         }
 
         // capturing this man & then moving a tile
@@ -298,7 +306,7 @@ Padfoot.prototype.candidate_moves = function(isopath) {
         for (var k = 0; k < tilefroms.length; k++) {
             var tilefrom = tilefroms[k];
             for (var l = 0; l < tiletos.length; l++) {
-                var tileto = tiletos[k];
+                var tileto = tiletos[l];
                 if (tilefrom != tileto)
                     moves.push([['capture', opp], ['tile', tilefrom, tileto]]);
             }
@@ -534,9 +542,11 @@ Padfoot.prototype.trans_insert = function(isopath, move, depth_remaining, alphao
 Padfoot.prototype.move = function() {
     var best = this.dfs(this.isopath.clone(), this.searchdepth, -Padfoot.maxscore, Padfoot.maxscore);
     console.log(best);
+    console.log("CONSTS = ");
+    console.log(this.constants);
     return best.move;
 };
 
 IsopathAI.register_ai('padfoot', 'Padfoot', function(isopath) {
-    return new Padfoot(isopath);
+    return new Padfoot(isopath, [0.25,4,387,635,139,84,0.83,409,772]);
 });
