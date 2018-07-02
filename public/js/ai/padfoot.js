@@ -48,6 +48,9 @@ Padfoot.prototype.evaluate = function(isopath) {
         }
     }
 
+    myscore += Math.random() * 10;
+    yourscore += Math.random() * 10;
+
     if (myscore > yourscore)
         return myscore - Math.floor(yourscore * this.constants[6]);
     else
@@ -153,13 +156,15 @@ Padfoot.prototype.paths_score = function(isopath, player) {
     var dstset = isopath.homerow[isopath.other[player]];
 
     var best = -1000;
+    var total = 0;
     for (var i = 0; i < srcset.length; i++) {
         var s = this.pathscore(isopath, srcset[i], dstset);
+        total += s;
         if (s > best)
             best = s;
     }
 
-    return best;
+    return best + total * this.constants[9];
 };
 
 // tile selection:
@@ -548,5 +553,5 @@ Padfoot.prototype.move = function() {
 };
 
 IsopathAI.register_ai('padfoot', 'Padfoot', function(isopath) {
-    return new Padfoot(isopath, [0.25,4,387,635,139,84,0.83,409,772]);
+    return new Padfoot(isopath, [1,4,37,300,300,500,0.2,503,500,0.2]);
 });
