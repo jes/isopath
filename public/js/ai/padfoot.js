@@ -60,7 +60,6 @@ Padfoot.prototype.place_tiles = function(max) {
 // return how many pieces the current player has adjacent to place
 Padfoot.prototype.num_adjacent = function(isopath, place) {
     var me = isopath.curplayer;
-    var you = isopath.other[me];
 
     var cnt = 0;
 
@@ -78,7 +77,6 @@ Padfoot.prototype.candidate_moves = function(isopath) {
     var you = isopath.other[me];
 
     var moves = [];
-
     var immediate_piece_moves = [];
 
     // find the best places to either place or remove tiles
@@ -233,8 +231,10 @@ Padfoot.prototype.instawin_move = function(isopath) {
 
 // return -1 if move a should be tried before b, or +1 if a should be tried after b
 Padfoot.prototype.cmpmove = function(a, b) {
-    // TODO: this
-    return 0;
+    // TODO: better
+    if (a[0][0] == 'capture')
+        return -1;
+    return 1;
 };
 
 Padfoot.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
@@ -256,7 +256,7 @@ Padfoot.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     var instawin = this.instawin_move(isopath);
     if (instawin) {
         return {
-            score: instawin.score,
+            score: instawin.score - 20 + depth_remaining, // "-20+depth" means we prefer a sooner win, and a later loss
             move: instawin.move,
         };
     }
