@@ -90,10 +90,8 @@ Sirius.prototype.evaluate = function(isopath) {
     return score;
 };
 
-// TODO: since this function is only used to pick places to take/remove tiles,
-// replace it with something that will be more intelligent about it
 // XXX: h should be either [0,1] when placing a tile or [1,2] when removing one
-Sirius.prototype.random_location_at_height = function(isopath, h) {
+Sirius.prototype.locations_at_heights = function(isopath, h) {
     var p = isopath.all_places;
     var possible = [];
 
@@ -149,8 +147,8 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
 
     // TODO: instead of re-building these at each invocation of dfs(), just keep
     // track of it every time we play or undo a move
-    var possiblefrom = this.random_location_at_height(isopath, [1,2]);
-    var possibleto = this.random_location_at_height(isopath, [0,1]);
+    var possiblefrom = this.locations_at_heights(isopath, [1,2]);
+    var possibleto = this.locations_at_heights(isopath, [0,1]);
 
     function randtilefrom() {
         return possiblefrom[Math.floor(Math.random() * possiblefrom.length)];
