@@ -9,9 +9,22 @@ function Padfoot(isopath) {
     this.isopath = isopath;
     this.searchdepth = 2;
     this.transpos = {nelems: 0};
+    this.pathscorememo = {nelems: 0};
 }
 
 Padfoot.maxscore = 100000;
+
+// https://stackoverflow.com/a/6274381
+Padfoot.prototype.shuffle = function(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
+}
 
 // evaluation:
 
@@ -19,10 +32,15 @@ Padfoot.prototype.evaluate = function(isopath) {
     var myscore = this.paths_score(isopath, isopath.curplayer);
     var yourscore = this.paths_score(isopath, isopath.other[isopath.curplayer]);
 
+    myscore += 50 * isopath.board[isopath.curplayer].length;
+    yourscore += 50 * isopath.board[isopath.other[isopath.curplayer]].length;
+
+    return myscore - yourscore;
+
     if (myscore > yourscore)
-        return myscore;
+        return myscore - Math.floor(yourscore * 0.1);
     else
-        return -yourscore;
+        return Math.floor(myscore * 0.1) - yourscore;
 };
 
 // shortest path:
@@ -30,25 +48,36 @@ Padfoot.prototype.evaluate = function(isopath) {
 Padfoot.prototype.cost = function(isopath, player, place) {
     var cost;
 
+    // cost for having to move pieces and tiles
     if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
         cost = 1;
     else if (isopath.board[place] == 1)
-        cost = 2;
+        cost = 20;
     else
-        cost = 4;
+        cost = 100;
 
-    if (this.num_adjacent(isopath, isopath.other[player], place) >= 2)
-        cost += 10;
+    // 100 cost if the space is threatened (as long as it's not a game-winning tile)
+    if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
+        cost = 100;
 
+    // 100 cost if the space is occupied
     if (isopath.piece_at(place) != '')
-        cost += 10;
+        cost = 100;
 
     return cost;
 };
 
+// TODO: use all-pairs shortest path instead of dijkstra, and just iteratively
+// update the path lengths when the tile heights change, instead of re-calculating
+// the entire thing every time
 Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     var me = isopath.piece_at(src);
     var you = isopath.other[me];
+
+    var key = this.strboard(isopath) + ";" + src + ";" + dstset[0];
+    if (this.pathscorememo[key]) {
+        return this.pathscorememo[key];
+    }
 
     // computing a path score:
     // edge weights:
@@ -75,15 +104,15 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
 
     while (q.length) {
         // find the point in the queue that is nearest to the source
-        var uidx = 0;
+        var u_idx = 0;
         for (var i = 1; i < q.length; i++) {
-            if (dist[q[i]] < dist[q[uidx]])
-                uidx = i;
+            if (dist[q[i]] < dist[q[u_idx]])
+                u_idx = i;
         }
 
         // remove this item from the queue
-        var u = q[uidx];
-        q.splice(uidx, 1);
+        var u = q[u_idx];
+        q.splice(u_idx, 1);
 
         // for each neighbour of u
         for (var i = 0; i < isopath.adjacent[u].length; i++) {
@@ -102,8 +131,13 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
             pathlength = dist[dstset[i]];
     }
 
+    if (this.pathscorememo.nelems > 100000)
+        this.pathscorememo = {nelems:0};
+
+    this.pathscorememo[key] = 500 - pathlength;
+
     // a shorter path scores higher
-    return 100 - pathlength;
+    return 500 - pathlength;
 };
 
 Padfoot.prototype.paths_score = function(isopath, player) {
@@ -115,13 +149,6 @@ Padfoot.prototype.paths_score = function(isopath, player) {
         var s = this.pathscore(isopath, srcset[i], dstset);
         if (s > best)
             best = s;
-    }
-
-    if (!this['highest'])
-        this.highest = 0;
-    if (best > this.highest) {
-        console.log(best);
-        this.highest = best;
     }
 
     return best;
@@ -147,13 +174,15 @@ Padfoot.prototype.alter_tiles = function(isopath, dir, max) {
         if (isopath.piece_at(p) != '')
             continue;
 
-        // alter the tile, work out what the paths score would be, restore the tile
+        // alter the tile, work out what the evaluation would be, restore the tile
         isopath.board[p] += dir;
-        var s = this.paths_score(isopath, isopath.curplayer) - this.paths_score(isopath, isopath.other[isopath.curplayer]);
+        var s = this.evaluate(isopath);
         isopath.board[p] -= dir;
 
         tiles.push([p, s]);
     }
+
+    this.shuffle(tiles);
 
     // pick the highest-scoring tile-removals first
     tiles.sort(function(a,b) {
