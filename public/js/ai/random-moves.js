@@ -24,7 +24,7 @@ RandomMoves.prototype.move = function() {
     }
 
     // generate random candidate moves until we find one that is legal
-    while (true) {
+    for (var i = 0; i < 10000; i++) {
         var thismove;
 
         // move a tile from a random location to another random location
@@ -50,6 +50,9 @@ RandomMoves.prototype.move = function() {
         if (ip.isLegalMove(move.concat(thismove)))
             return move.concat(thismove);
     }
+
+    // can't find a legal move after 10k attempts:
+    throw "can't find a legal move";
 };
 
 IsopathAI.register_ai('random-moves', 'Random moves', function(isopath) {
