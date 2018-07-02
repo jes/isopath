@@ -7,7 +7,7 @@
 
 function Padfoot(isopath) {
     this.isopath = isopath;
-    this.searchdepth = 3;
+    this.searchdepth = 2;
     this.transpos = {nelems: 0};
 }
 
@@ -15,57 +15,175 @@ Padfoot.maxscore = 100000;
 
 // evaluation:
 
-Padfoot.prototype.evaluate_for = function(isopath, player) {
-    // TODO: this
-    return 0;
+Padfoot.prototype.evaluate = function(isopath) {
+    var myscore = this.paths_score(isopath, isopath.curplayer);
+    var yourscore = this.paths_score(isopath, isopath.other[isopath.curplayer]);
+
+    if (myscore > yourscore)
+        return myscore;
+    else
+        return -yourscore;
 };
 
-Padfoot.prototype.evaluate = function(isopath) {
-    if (isopath.curplayer == 'white')
-        return this.evaluate_for(isopath, 'white') - this.evaluate_for(isopath, 'black');
+// shortest path:
+
+Padfoot.prototype.cost = function(isopath, player, place) {
+    var cost;
+
+    if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
+        cost = 1;
+    else if (isopath.board[place] == 1)
+        cost = 2;
     else
-        return this.evaluate_for(isopath, 'black') - this.evaluate_for(isopath, 'white');
+        cost = 4;
+
+    if (this.num_adjacent(isopath, isopath.other[player], place) >= 2)
+        cost += 10;
+
+    if (isopath.piece_at(place) != '')
+        cost += 10;
+
+    return cost;
+};
+
+Padfoot.prototype.pathscore = function(isopath, src, dstset) {
+    var me = isopath.piece_at(src);
+    var you = isopath.other[me];
+
+    // computing a path score:
+    // edge weights:
+    //  - moving on to a tile of your height: 1
+    //  - moving on to a tile at height 1: 2
+    //  - moving on to a tile at opponent height: 4
+    //  - moving on to a threatened tile: +10
+    // dijkstra then gives us the cost of the paths from src to all points
+    // we choose the cost as the minimum cost from src to any point in dstset
+    // the *score* of the path is then 100-cost
+    // TODO: instead of hardcoding the constants, make them part of the constructor,
+    // and then run a tournament with a genetic algorithm to find the optimal constants
+
+    // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
+    var q = [];
+
+    var dist = {};
+    for (var i = 0; i < isopath.all_places.length; i++) {
+        var p = isopath.all_places[i];
+        dist[p] = 100000;
+        q.push(p);
+    }
+    dist[src] = 0;
+
+    while (q.length) {
+        // find the point in the queue that is nearest to the source
+        var uidx = 0;
+        for (var i = 1; i < q.length; i++) {
+            if (dist[q[i]] < dist[q[uidx]])
+                uidx = i;
+        }
+
+        // remove this item from the queue
+        var u = q[uidx];
+        q.splice(uidx, 1);
+
+        // for each neighbour of u
+        for (var i = 0; i < isopath.adjacent[u].length; i++) {
+            var v = isopath.adjacent[u][i];
+            var alt = dist[u] + this.cost(isopath, me, v);
+            if (alt < dist[v]) {
+                dist[v] = alt;
+            }
+        }
+    }
+
+    // find the length of the shortest path to any item in dstset
+    var pathlength = 100000;
+    for (var i = 0; i < dstset.length; i++) {
+        if (dist[dstset[i]] < pathlength)
+            pathlength = dist[dstset[i]];
+    }
+
+    // a shorter path scores higher
+    return 100 - pathlength;
+};
+
+Padfoot.prototype.paths_score = function(isopath, player) {
+    var srcset = isopath.board[player];
+    var dstset = isopath.homerow[isopath.other[player]];
+
+    var best = -1000;
+    for (var i = 0; i < srcset.length; i++) {
+        var s = this.pathscore(isopath, srcset[i], dstset);
+        if (s > best)
+            best = s;
+    }
+
+    if (!this['highest'])
+        this.highest = 0;
+    if (best > this.highest) {
+        console.log(best);
+        this.highest = best;
+    }
+
+    return best;
 };
 
 // tile selection:
 
-Padfoot.prototype.take_tiles = function(max) {
-    // TODO: better
-    var froms = [];
-    for (var i = 0; i < max; i++) {
-        var from;
-        do {
-            from = isopath.all_places[Math.floor(Math.random() * isopath.all_places.length)];
-        } while(isopath.board[from] == 0 || isopath.piece_at(from) != '' || isopath.homerow[isopath.curplayer].indexOf(from) != -1);
-        froms.push(from);
+// dir must be either -1 or +1
+Padfoot.prototype.alter_tiles = function(isopath, dir, max) {
+    var tiles = [];
+    for (var i = 0; i < isopath.all_places.length; i++) {
+        var p = isopath.all_places[i];
+
+        // don't move it below 0 or above 1
+        if ((dir == -1 && isopath.board[p] == 0) || (dir == 1 && isopath.board[p] == 2))
+            continue;
+
+        // don't touch our own home row
+        if (isopath.homerow[isopath.curplayer].indexOf(p) != -1)
+            continue;
+
+        // don't move tiles with men on them
+        if (isopath.piece_at(p) != '')
+            continue;
+
+        // alter the tile, work out what the paths score would be, restore the tile
+        isopath.board[p] += dir;
+        var s = this.paths_score(isopath, isopath.curplayer) - this.paths_score(isopath, isopath.other[isopath.curplayer]);
+        isopath.board[p] -= dir;
+
+        tiles.push([p, s]);
     }
-    return froms;
+
+    // pick the highest-scoring tile-removals first
+    tiles.sort(function(a,b) {
+        return b[1] - a[1];
+    });
+
+    // return the best "max" moves
+    var r = [];
+    for (var i = 0; i < max && i < tiles.length; i++) {
+        r.push(tiles[i][0]);
+    }
+    return r;
 };
 
-Padfoot.prototype.place_tiles = function(max) {
-    // TODO: better
-    var tos = [];
-    for (var i = 0; i < max; i++) {
-        var to;
-        do {
-            to = isopath.all_places[Math.floor(Math.random() * isopath.all_places.length)];
-        } while(isopath.board[to] == 2 || isopath.piece_at(to) != '' || isopath.homerow[isopath.curplayer].indexOf(to) != -1);
-        tos.push(to);
-    }
-    return tos;
+Padfoot.prototype.take_tiles = function(isopath, max) {
+    return this.alter_tiles(isopath, -1, max);
+};
+Padfoot.prototype.place_tiles = function(isopath, max) {
+    return this.alter_tiles(isopath, 1, max);
 };
 
 // search:
 
-// return how many pieces the current player has adjacent to place
-Padfoot.prototype.num_adjacent = function(isopath, place) {
-    var me = isopath.curplayer;
-
+// return the number of pieces the given player has adjacent to place
+Padfoot.prototype.num_adjacent = function(isopath, player, place) {
     var cnt = 0;
 
     for (var i = 0; i < isopath.adjacent[place].length; i++) {
         var adj = isopath.adjacent[place][i];
-        if (isopath.board[me].indexOf(adj) != -1)
+        if (isopath.board[player].indexOf(adj) != -1)
             cnt++;
     }
 
@@ -84,8 +202,8 @@ Padfoot.prototype.candidate_moves = function(isopath) {
     // TODO: we should also be able to remove/place a tile on the space we just
     //       moved a man off, in the case of "can move here immediately", or
     //       captured a man from, in the case of a capture
-    var tilefroms = this.take_tiles(3);
-    var tiletos = this.place_tiles(3);
+    var tilefroms = this.take_tiles(isopath, 3);
+    var tiletos = this.place_tiles(isopath, 3);
 
     // piece moves:
     for (var i = 0; i < isopath.board[me].length; i++) {
@@ -138,7 +256,7 @@ Padfoot.prototype.candidate_moves = function(isopath) {
         var opp = isopath.board[you][i];
 
         // can only capture it if we have 2 or more adjacent men
-        if (this.num_adjacent(isopath, opp) < 2)
+        if (this.num_adjacent(isopath, me, opp) < 2)
             continue;
 
         // capturing this man & then moving a piece
@@ -169,7 +287,7 @@ Padfoot.prototype.instawin_move = function(isopath) {
     // if we can win the game instantly by capturing their final piece, do so
     if (isopath.board[you].length == 1) {
         var opp = isopath.board[you][0];
-        if (this.num_adjacent(isopath, opp) >= 2) {
+        if (this.num_adjacent(isopath, me, opp) >= 2) {
             return {
                 move: [["capture",isopath.board[you][0]]],
                 score: Padfoot.maxscore,
@@ -191,14 +309,14 @@ Padfoot.prototype.instawin_move = function(isopath) {
                     // XXX: this tile selection code should be shorter
                     if (isopath.playerlevel[me] == 2) {
                         tileto = to;
-                        var tilefroms = this.take_tiles(2);
+                        var tilefroms = this.take_tiles(isopath, 2);
                         if (tilefroms[0] == tileto)
                             tilefrom = tilefroms[1];
                         else
                             tilefrom = tilefroms[0];
                     } else {
                         tilefrom = to;
-                        var tiletos = this.place_tiles(2);
+                        var tiletos = this.place_tiles(isopath, 2);
                         if (tiletos[0] == tilefrom)
                             tileto = tiletos[1];
                         else
