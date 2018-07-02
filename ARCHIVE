@@ -1,0 +1,18 @@
+# This is an archive of game transcriptions. Each line is either empty, is a
+# comment beginning with a "#", or starts out with text describing who was
+# playing in the form "YYYY-MM-DD White vs Black:", followed by the game transcription
+# in what should be an almost-machine-friendly format.
+#
+# Ideally the file would only include games where both players played well,
+# and could therefore be useful to train a deep-learning-based AI, but such
+# games are hard to come across, so for now it is mostly just me playing
+# against the AI.
+
+2018-07-02 jes vs Sirius: 1. Td2b3 Pa3b3,  Tf4d5 Pg3f4 2. Td3c4 Pb3c4,  Te4d2 Pf4e4 3. Pc4d5 Te6e5,  Te5c2 Pg4f4 4. Td7b2 Pa2b2,  Te5b4 Pf4e5 5. Td4d6 Pd5d6,  Tb3d7 Pe4d4 6. Pa4b4 Tc1e6,  Tf2e6 Pg1f2 7. Pd6e6 Td1g4,  Tf5c6 Pe5f5 8. Pb2c2 Td7d2,  Te3c5 Pf2e3 9. Pa1b2 Td5e1,  Tf1c3 Pe3d3 10. Pb4c4 Td5f1,  Tf1b1 Pg2f2 11. Pc2d2 Te2f1,  Tc5b5 Pf2e2 12. Pd2e1 Td6f1,  Ta2d7 Pe2f2 13. Tf3g1 Pe1f1,  Tc2e4 Pd4d5 14. Te4g1 Pf1g1, white wins.
+
+# nice forced capture from black:
+2018-07-02 jes vs Sirius: 1. Td6b3 Pa3b3,  Tf3f1 Pg3f3 2. Td5c3 Pb3c3,  Te3d2 Pf3e3 3. Pa2b3 Td1b5,  Te1f4 Pg2f3 4. Tc2g3 Pa4b5,  Td3b4 Pe3d3 5. Td2d4 Pc3d4,  Te4c5 Pf3e4 6. Pd4c3 Tc4c6,  Tb1e3 Pe4d5 7. Pb5c6 Te2d7,  Tf5e4 Pg4f5 8. Pc6d7 Td2e6,  Te5e1 Pf5e5 9. Tc1f5 Pd7e6,  Tc5c2 Pd5d6 10. Te1f5 Pe6f5,  Tc6d1 Pg1g4 11. Pc3d4 Tf1e4,  Tc2f1 Pd3c2 12. Pd4e4 Te3g3,  Cf5 Te6d1 13. Td7f3 Pb3c3,  Tf5d7 Pc2b1 14. Tc6f3 Pe4f3,  Te4c4 Pb1c2 15. Pf3g3, white wins.
+
+2018-07-02 Sirius vs jes: 1. Te6b4 Pa3b4,  Tf3d2 Pg2f3 2. Td7c4 Pb4c4,  Te4d3 Pf3e4 3. Td6b1 Pa1b1,  Td4d6 Pe4d4 4. Tf5b3 Pa2b3,  Tf1e6 Pg1f1 5. Td6b5 Pa4b5,  Te1e6 Pf1e1 6. Te5c3 Pb3c3,  Td5e3 Pd4d5 7. Tc1c2 Pc3d3,  Td1d7 Pe1d1 8. Tb2g1 Pd3e3,  Pg3g2 Tf2f5 9. Td2c5 Pb5c5,  Pd5d6 Tc6d7 10. Td2f5 Pb1c2,  Pd1c1 Tb1d2 11. Tb1f2 Pc4c3,  Pc1b1 Ta1c1 12. Tf4e2 Pe3e2,  Ta1b2 Pb1a1 black wins.
+
+2018-07-02 Sirius vs jes: 1. Td7b3 Pa2b3,  Tf3e5 Pg2f3 2. Td4c3 Pb3c3,  Te3e1 Pf3e3 3. Td1b2 Pa1b2,  Tf5d2 Pg4f5 4. Tf1c2 Pb2c2,  Te6c4 Pf5e6 5. Td5c6 Pc2d2,  Pe6d7 Ta1d5 6. Te5b4 Pa4b4,  Pd7d1 Tc1d7 7. Td6f2 Pa3b3,  Te2e6 Pe3e2 8. Tc5e3 Pd2c2,  Pd1c1 Tb1d4 9. Tc6b5 Pb3b2,  Td2d6 Pg3f3 10. Te6b1 Pb4c4,  Td2d6 Pe2d2 11. Tb3b1 Pc2b1,  Te3e6 Pf3e3 12. Td6d4 Pc3d4,  Td3c5 Pd2d3 13. Tc6e4 Pd4e4,  Pe3f3 Tf4f5 14. Tc5d5 Pc4d5,  Pg1g4 Tc3d1 15. Te1e5 Pd5e5,  Tc3c5 Pd3c3 16. Td6b3 Pb2b3,  Tf5e2 Pg4f5 17. Tf2e3 Pb3c4,  Tb3c6 Pc1d2 18. Te6f4 Pb1b2,  Pc3d3 Tb3c6 19. Tc5g1 Pc4d4,  Pd2c1 Tb1d7 20. Te3d2 Pd4d5,  Tb1c3 Pc1b1 21. Te2f4 Pe5f4,  Ta1b3 Pb1a1 black wins.
