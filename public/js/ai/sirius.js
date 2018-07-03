@@ -55,6 +55,12 @@ Sirius.prototype.evaluate = function(isopath) {
         whitetiles += 2 * isopath.board["e" + col];
     }
 
+    // small bonus for middle row
+    for (var col = 1; col <= 7; col++) {
+        whitetiles += (2-isopath.board["d" + col]);
+        whitetiles -= isopath.board["d" + col];
+    }
+
     var tilescore = isopath.curplayer == 'white' ? whitetiles : -whitetiles;
 
     // one score for piece values for each player
