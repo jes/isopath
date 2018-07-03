@@ -325,8 +325,8 @@ Padfoot.prototype.candidate_moves = function(isopath) {
     // TODO: we should also be able to remove/place a tile on the space we just
     //       moved a man off, in the case of "can move here immediately", or
     //       captured a man from, in the case of a capture
-    var tilefroms = this.take_tiles(isopath, 2);
-    var tiletos = this.place_tiles(isopath, 2);
+    var tilefroms = this.take_tiles(isopath, 3);
+    var tiletos = this.place_tiles(isopath, 3);
 
     // piece moves:
     for (var i = 0; i < isopath.board[me].length; i++) {
