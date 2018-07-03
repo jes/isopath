@@ -173,14 +173,15 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     }
 
     // computing a path score:
-    // edge weights:
-    //  - moving on to a tile of your height: 1
-    //  - moving on to a tile at height 1: 2
-    //  - moving on to a tile at opponent height: 4
-    //  - moving on to a threatened tile: +10
+    // edge weights (from this.constants, for):
+    //  - moving on to a tile of your height
+    //  - moving on to a tile at height 1
+    //  - moving on to a tile at opponent height
+    //  - moving on to a threatened tile
+    //  - moving on to an occupied tile
     // dijkstra then gives us the cost of the paths from src to all points
     // we choose the cost as the minimum cost from src to any point in dstset
-    // the *score* of the path is then 100-cost
+    // the *score* of the path is then proportional to 1/cost
 
     // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
     var q = [];
