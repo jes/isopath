@@ -160,9 +160,6 @@ Padfoot.prototype.cost = function(isopath, player, place) {
     return cost;
 };
 
-// TODO: use all-pairs shortest path instead of dijkstra, and just iteratively
-// update the path lengths when the tile heights change, instead of re-calculating
-// the entire thing every time
 Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     var me = isopath.piece_at(src);
     var you = isopath.other[me];
