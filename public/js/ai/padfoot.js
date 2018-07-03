@@ -29,6 +29,83 @@ Padfoot.prototype.shuffle = function(a) {
 
 // evaluation:
 
+Padfoot.piece_score = function(place, colour) {
+    if (colour == 'black') {
+        // just invert the location and then score as if it's white
+        place = place.replace('a', 'G').replace('b', 'F').replace('c', 'E')
+            .replace('g', 'a').replace('f', 'b').replace('e', 'c')
+            .toLowerCase();
+    }
+
+    var row = 4 + place.charCodeAt(0) - 'a'.charCodeAt(0);
+    return 100 + row*row*10;
+};
+
+// this is a copy of the evaluation function from Sirius
+Padfoot.prototype.sirius_evaluate = function(isopath) {
+    // one score for tile values for each player
+    var whitetiles = 0;
+
+    // small extra bonus for controlling the centre
+    whitetiles += isopath.board["d1"]-1; // teleport
+    whitetiles += isopath.board["d4"]-1; // centre of board
+    whitetiles += isopath.board["d7"]-1; // teleport
+
+    // big bonus for building on home row
+    for (var col = 1; col <= 4; col++) {
+        if (isopath.board["a" + col] != 2)
+            whitetiles -= 2;
+        if (isopath.board["g" + col] != 0)
+            whitetiles += 2;
+    }
+
+    // big bonus for approaching home row
+    for (var col = 1; col <= 5; col++) {
+        whitetiles -= 5 * (2-isopath.board["b" + col]);
+        whitetiles += 5 * isopath.board["f" + col];
+    }
+
+    // medium bonus for 1 away from approaching home row
+    for (var col = 1; col <= 6; col++) {
+        whitetiles -= 2 * (2-isopath.board["c" + col]);
+        whitetiles += 2 * isopath.board["e" + col];
+    }
+
+    // small bonus for middle row
+    for (var col = 1; col <= 7; col++) {
+        whitetiles += (2-isopath.board["d" + col]);
+        whitetiles -= isopath.board["d" + col];
+    }
+
+    var tilescore = isopath.curplayer == 'white' ? whitetiles : -whitetiles;
+
+    // one score for piece values for each player
+    var whitepieces = 0;
+    for (var i = 0; i < isopath.board['white'].length; i++) {
+        var place = isopath.board['white'][i];
+        whitepieces += Padfoot.piece_score(place, 'white');
+        // score us some points for ability to move
+        for (var j = 0; j < isopath.adjacent[place]; j++) {
+            whitepieces += isopath.board[isopath.adjacent[place][j]];
+        }
+    }
+    for (var i = 0; i < isopath.board['black'].length; i++) {
+        var place = isopath.board['black'][i];
+        whitepieces -= Padfoot.piece_score(place, 'black');
+        // score us some points for ability to move
+        for (var j = 0; j < isopath.adjacent[place]; j++) {
+            whitepieces -= (2-isopath.board[isopath.adjacent[place][j]]);
+        }
+    }
+
+    var piecescore = isopath.curplayer == 'white' ? whitepieces : -whitepieces;
+
+    // combine those 2 scores into an evaluation
+    var score = tilescore + piecescore;
+
+    return score;
+};
+
 Padfoot.prototype.evaluate = function(isopath) {
     var myscore = this.paths_score(isopath, isopath.curplayer);
     var yourscore = this.paths_score(isopath, isopath.other[isopath.curplayer]);
@@ -36,25 +113,27 @@ Padfoot.prototype.evaluate = function(isopath) {
     myscore += this.constants[5] * isopath.board[isopath.curplayer].length;
     yourscore += this.constants[5] * isopath.board[isopath.other[isopath.curplayer]].length;
 
-    // pieces under threat
+    // pieces under threat (we only check if your pieces are under threat, because we're about to
+    // move and we can just take your piece, whereas we can run away and stop you from taking our piece)
+    var underthreat = false;
     for (var i = 0; i < 4; i++) {
-        if (i < isopath.board[isopath.curplayer].length) {
-            if (this.num_adjacent(isopath, isopath.other[isopath.curplayer], isopath.board[isopath.curplayer][i]) >= 2)
-                yourscore += this.constants[8];
-        }
         if (i < isopath.board[isopath.other[isopath.curplayer]].length) {
             if (this.num_adjacent(isopath, isopath.curplayer, isopath.board[isopath.other[isopath.curplayer]][i]) >= 2)
-                myscore += this.constants[8];
+                underthreat = true;
         }
     }
+    if (underthreat)
+        myscore += this.constants[8];
 
-    myscore += Math.random() * 10;
-    yourscore += Math.random() * 10;
+    myscore += Math.random() * 3;
+    yourscore += Math.random() * 3;
+
+    myscore += this.constants[10] * this.sirius_evaluate(isopath);
 
     if (myscore > yourscore)
-        return myscore - Math.floor(yourscore * this.constants[6]);
+        return myscore - yourscore * this.constants[6];
     else
-        return Math.floor(myscore * this.constants[6]) - yourscore;
+        return myscore * this.constants[6] - yourscore;
 };
 
 // shortest path:
@@ -143,12 +222,16 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
             pathlength = dist[dstset[i]];
     }
 
+    // if I'm not allowed to move a piece, I'm one step further
+    if (isopath.curplayer != me)
+        pathlength++;
+
     if (this.pathscorememo.nelems > 100000)
         this.pathscorememo = {nelems:0};
-    this.pathscorememo[key] = this.constants[7] - pathlength;
+    this.pathscorememo[key] = this.constants[7] / pathlength;
 
     // a shorter path scores higher
-    return this.constants[7] - pathlength;
+    return this.constants[7] / pathlength;
 };
 
 Padfoot.prototype.paths_score = function(isopath, player) {
@@ -553,5 +636,5 @@ Padfoot.prototype.move = function() {
 };
 
 IsopathAI.register_ai('padfoot', 'Padfoot', function(isopath) {
-    return new Padfoot(isopath, [1,4,37,300,300,500,0.2,503,500,0.2]);
+    return new Padfoot(isopath, [1,2,3,4,5,6,1,1000,2,2,0.5]);
 });
