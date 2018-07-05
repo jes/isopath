@@ -31,7 +31,7 @@ function combine(a, b) {
 
     // mutation
     for (var i = 0; i < child.length; i++) {
-        if (Math.random() * 0.95) {
+        if (Math.random() > 0.95) {
             child[i] = Math.round(100 * child[i] * (0.8 + Math.random() * 0.4)) / 100;
         }
     }
