@@ -58,7 +58,7 @@ Donald.prototype.sirius_evaluate = function(isopath) {
 
     // big bonus for approaching home row
     for (var col = 1; col <= 5; col++) {
-        if (isopath.curplayer == 'white')        
+        if (isopath.curplayer == 'white')
             whitetiles -= 5000 * (2-isopath.board["b" + col]);
         else
             whitetiles += 5000 * isopath.board["f" + col];
