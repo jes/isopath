@@ -5,7 +5,8 @@ eval(fs.readFileSync('../public/js/isopath-ai.js').toString());
 eval(fs.readFileSync('../public/js/ai/padfoot.js').toString());
 
 var generation = 1;
-var population = [{constants:[1,2,3,4,5,6,1,1000,2,2,0.5],score:0}, {constants:[1.01,2.09,2.87,3.99,4.83,6.18,0.95,1044.61,1.98,1.96,0.51],score:0}, {constants:[1,2,1,2,1,2,1,2,1,2,1,2],score:0}, {constants:[1,3,9,27,81,200,600,900,2700,81,1],score:0}];
+
+var population = [{constants:[1.04,2.18,3.05,4.12,4.81,5.86,0.98,839.91,1.83,2.14,0.47],score:0}, {constants:[1.01,2.19,2.9,3.89,4.7,5.92,1,1045.94,1.85,2.32,0.46],score:0}, {constants:[1.04,2.18,3.05,4.12,4.81,5.86,0.98,1021.89,1.83,2.14,0.47],score:0}, {constants:[0.68,1.31,3.05,5.34,4.09,14.63,0.97,574.16,1.39,3.79,0.48],score:0},{constants:[0.77,1.76,2.61,4.12,5.27,4.89,1.02,839.91,1.71,2.32,0.37],score:0}];
 
 function combine(a, b) {
     var child = [];
@@ -31,7 +32,7 @@ function combine(a, b) {
 
     // mutation
     for (var i = 0; i < child.length; i++) {
-        if (Math.random() > 0.95) {
+        if (Math.random() > 0.9) {
             child[i] = Math.round(100 * child[i] * (0.8 + Math.random() * 0.4)) / 100;
         }
     }
@@ -58,10 +59,16 @@ function reproduce() {
         score: 0,
     });
 
-    // generate 3 children by combining the top 2 individuals from last generation
-    for (var i = 0; i < 3; i++) {
+    // generate children by combining the top 2 individuals from last generation
+    var got = {};
+    for (var i = 0; i < 5; i++) {
+        var consts;
+        do {
+            consts = combine(population[0].constants, population[1].constants);
+        } while(got[JSON.stringify(consts)]);
+        got[JSON.stringify(consts)] = true;
         newpopulation.push({
-            constants: combine(population[0].constants, population[1].constants),
+            constants: consts,
             score: 0,
         });
     }
@@ -73,7 +80,7 @@ function round_robin_tournament() {
     console.log("");
     console.log("Generation " + generation + ":");
     for (var i = 0; i < population.length; i++) {
-        for (var j = 0; j < population.length; j++) {
+        for (var j = i+1; j < population.length; j++) {
             if (i == j)
                 continue;
 

@@ -627,9 +627,6 @@ Padfoot.prototype.trans_insert = function(isopath, move, depth_remaining, alphao
 
 Padfoot.prototype.move = function() {
     var best = this.dfs(this.isopath.clone(), this.searchdepth, -Padfoot.maxscore, Padfoot.maxscore);
-    console.log(best);
-    console.log("CONSTS = ");
-    console.log(this.constants);
     return best.move;
 };
 
