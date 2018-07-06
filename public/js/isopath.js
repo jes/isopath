@@ -21,6 +21,12 @@ function Isopath() {
         'black': 0,
     };
 
+    this.tilemovecounter = {
+        'white': 0,
+        'black': 0,
+    };
+    this.relevant_tiles = [];
+
     this.other = {
         'white': 'black',
         'black': 'white',
@@ -148,11 +154,15 @@ Isopath.prototype.undoMove = function() {
             this.board[this.other[this.curplayer]].push(from);
         }
     }
+
+    // TODO: read last 3 moves and update state for anti-stalemate rule
 };
 
 Isopath.prototype.playMove = function(move, mode) {
     if (!mode || mode != 'no-legality-check')
         this.checkMoveLegality(move);
+
+    var have_tile_move = false;
 
     for (var i = 0; i < move.length; i++) {
         let movetype = move[i][0];
@@ -162,6 +172,12 @@ Isopath.prototype.playMove = function(move, mode) {
         if (movetype == 'tile') {
             this.board[from]--;
             this.board[to]++;
+            if (this.relevant_tiles.indexOf(from) != -1 || this.relevant_tiles.indexOf(to) != -1)
+                this.tilemovecounter[this.curplayer]++;
+            else
+                this.tilemovecounter[this.curplayer] = 0;
+            this.relevant_tiles = [from,to];
+            have_tile_move = true;
         } else if (movetype == 'piece') {
             this.board[this.curplayer][this.board[this.curplayer].indexOf(from)] = to;
         } else if (movetype == 'capture') {
@@ -171,6 +187,8 @@ Isopath.prototype.playMove = function(move, mode) {
 
     this.moves.push(move);
     this.curplayer = this.other[this.curplayer];
+    if (!have_tile_move)
+        this.relevant_tiles = [];
 };
 
 Isopath.prototype.checkMoveLegality = function(move, mode) {
@@ -211,6 +229,8 @@ Isopath.prototype.checkMoveLegality = function(move, mode) {
                 throw "can't move a tile to a place with a piece on it";
             if (piece_from != from && (piece_to == from || this.board["black"].indexOf(from) != -1 || this.board["white"].indexOf(from) != -1))
                 throw "can't move a tile from a place with a piece on it";
+            if (this.tilemovecounter[this.curplayer] >= 2 && (this.relevant_tiles.indexOf(from) != -1 || this.relevant_tiles.indexOf(to) != -1))
+                throw "can't touch a tile that an opponent touched 3 turns in a row";
 
             tile_to = to;
             tile_from = from;
