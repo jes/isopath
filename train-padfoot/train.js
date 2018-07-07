@@ -61,6 +61,7 @@ function reproduce() {
 
     // generate children by combining the top 2 individuals from last generation
     var got = {};
+    got[JSON.stringify(population[0].constants)] = true;
     for (var i = 0; i < 5; i++) {
         var consts;
         do {
