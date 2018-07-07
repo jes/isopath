@@ -92,7 +92,19 @@ longitudinally, e.g. from a1 to g1.</p>
 
 <p>A player may never build or dig on his own home row, even if doing so would help the opponent.</p>
 
-<h3>4. Victory condition</h3>
+<h3>4. Tile reversions</h3>
+
+<p>A "tile reversion" is defined as a tile move in which a player reverts a tile move that was just performed
+by the other player. A tile move is only a tile reversion if it is played in the player's favour (i.e. for white,
+the removed tile is never a tile reversion because removing a tile helps black, not white; similarly,
+for black, the placed tile is never a itle reversion because placing a tile helps white, not black).</p>
+
+<p>No player may play 3 tile reversions in a row.</p>
+
+<p>(This move does not exist in pocket83's original rules, but has been added to help prevent stalemates from arising;
+it is still considered experimental and might be removed or altered in the future)</p>
+
+<h3>5. Victory condition</h3>
 
 <p>A player wins the game as soon as he places one of his tiles on the opponent's home row.
 Even if the opponent would be able to immediately capture the winning piece, he is unable to as he has
