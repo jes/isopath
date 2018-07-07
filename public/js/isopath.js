@@ -179,10 +179,13 @@ Isopath.prototype.playMove = function(move, mode) {
             this.board[from]--;
             this.board[to]++;
 
-            if ((this.relevant_tile == from && this.curplayer == 'black') || (this.relevant_tile == to && this.curplayer == 'white'))
+            if ((this.relevant_tile == from && this.curplayer == 'black') || (this.relevant_tile == to && this.curplayer == 'white')) {
                 this.tileundocounter[this.curplayer]++;
-            else
-                this.tileundocounter[this.curplayer] = 0;
+            } else {
+                // reset both players' undo counters if the move is not on the relevant tile
+                this.tileundocounter['white'] = 0;
+                this.tileundocounter['black'] = 0;
+            }
 
             if (this.curplayer == 'black')
                 this.relevant_tile = from;
