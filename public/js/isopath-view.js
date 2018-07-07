@@ -54,8 +54,13 @@ IsopathView.prototype.clicked_on_hex = function(place) {
         this.clickmode = '';
         if (this_place_has == this.opts.isopath.other[this.opts.isopath.curplayer]) {
             // capture
-            if (donehalf != 'capture' && this.opts.isopath.isLegalMove(this.move.concat([["capture",place]]), 'halfmove-check'))
+            if (donehalf != 'capture' && this.opts.isopath.isLegalMove(this.move.concat([["capture",place]]), 'halfmove-check')) {
                 this.move.push(["capture",place]);
+                if (this.opts.isopath.board[this.opts.isopath.other[this.opts.isopath.curplayer]].length == 1) {
+                    // we captured their final piece, no need for a second move-half
+                    movedone = true;
+                }
+            }
         } else if (this_place_has == this.opts.isopath.curplayer) {
             // start moving a piece
             if (donehalf != 'piece') {
