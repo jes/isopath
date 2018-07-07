@@ -21,11 +21,11 @@ function Isopath() {
         'black': 0,
     };
 
-    this.tilemovecounter = {
+    this.tileundocounter = {
         'white': 0,
         'black': 0,
     };
-    this.relevant_tiles = [];
+    this.relevant_tile = '';
 
     this.other = {
         'white': 'black',
@@ -155,7 +155,23 @@ Isopath.prototype.undoMove = function() {
         }
     }
 
-    // TODO: read last 3 moves and update state for anti-stalemate rule
+    // update the tile undo counter
+    if (this.tileundocounter[this.curplayer] > 0)
+        this.tileundocounter[this.curplayer]--;
+    if (this.moves.length > 0) {
+        var lastmove = this.moves[this.moves.length-1];
+        var tilemove = ['tile', '', ''];
+        if (lastmove[0][0] == 'tile')
+            tilemove = lastmove[0];
+        if (lastmove[1][0] == 'tile')
+            tilemove = lastmove[1];
+        if (this.curplayer == 'black')
+            this.relevant_tile = tilemove[2]; // moved tile from
+        else
+            this.relevant_tile = tilemove[1]; // moved tile to
+    } else {
+        this.relevant_tile = '';
+    }
 };
 
 Isopath.prototype.playMove = function(move, mode) {
@@ -172,11 +188,16 @@ Isopath.prototype.playMove = function(move, mode) {
         if (movetype == 'tile') {
             this.board[from]--;
             this.board[to]++;
-            if (this.relevant_tiles.indexOf(from) != -1 || this.relevant_tiles.indexOf(to) != -1)
-                this.tilemovecounter[this.curplayer]++;
+
+            if ((this.relevant_tile == from && this.curplayer == 'black') || (this.relevant_tile == to && this.curplayer == 'white'))
+                this.tileundocounter[this.curplayer]++;
             else
-                this.tilemovecounter[this.curplayer] = 0;
-            this.relevant_tiles = [from,to];
+                this.tileundocounter[this.curplayer] = 0;
+
+            if (this.curplayer == 'black')
+                this.relevant_tile = from;
+            else
+                this.relevant_tile = to;
             have_tile_move = true;
         } else if (movetype == 'piece') {
             this.board[this.curplayer][this.board[this.curplayer].indexOf(from)] = to;
@@ -188,7 +209,7 @@ Isopath.prototype.playMove = function(move, mode) {
     this.moves.push(move);
     this.curplayer = this.other[this.curplayer];
     if (!have_tile_move)
-        this.relevant_tiles = [];
+        this.relevant_tile = '';
 };
 
 Isopath.prototype.checkMoveLegality = function(move, mode) {
@@ -229,8 +250,8 @@ Isopath.prototype.checkMoveLegality = function(move, mode) {
                 throw "can't move a tile to a place with a piece on it";
             if (piece_from != from && (piece_to == from || this.board["black"].indexOf(from) != -1 || this.board["white"].indexOf(from) != -1))
                 throw "can't move a tile from a place with a piece on it";
-            if (this.tilemovecounter[this.curplayer] >= 2 && (this.relevant_tiles.indexOf(from) != -1 || this.relevant_tiles.indexOf(to) != -1))
-                throw "can't touch a tile that an opponent touched 3 turns in a row";
+            if (this.tileundocounter[this.curplayer] >= 2 && ((this.relevant_tile == from && this.curplayer == 'black') || (this.relevant_tile == to && this.curplayer == 'white')))
+                throw "can't undo opponent's tile move 3 turns in a row";
 
             tile_to = to;
             tile_from = from;
