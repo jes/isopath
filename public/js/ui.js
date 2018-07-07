@@ -211,7 +211,7 @@ $(document).ready(function() {
                     try {
                         isopath.playMove(ai[isopath.curplayer].move());
                     } catch(e) {
-                        $('#illegal-move').text("Illegal move from AI: " + e);
+                        $('#illegal-move').text("Illegal move from " + isopath.curplayer + " AI: " + e);
                         ingame = false;
                     };
                     redraw();
