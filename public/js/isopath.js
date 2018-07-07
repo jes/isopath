@@ -21,12 +21,6 @@ function Isopath() {
         'black': 0,
     };
 
-    this.tileundocounter = {
-        'white': 0,
-        'black': 0,
-    };
-    this.relevant_tile = '';
-
     this.other = {
         'white': 'black',
         'black': 'white',
@@ -82,6 +76,13 @@ function Isopath() {
     // game state tracking
     this.moves = [];
     this.curplayer = 'white';
+
+    // tile undo rule tracking
+    this.tileundocounter = {
+        'white': 0,
+        'black': 0,
+    };
+    this.relevant_tile = '';
 
     // pieces are initially on the players' home rows
     this.board = {
@@ -166,9 +167,9 @@ Isopath.prototype.undoMove = function() {
         if (lastmove[1][0] == 'tile')
             tilemove = lastmove[1];
         if (this.curplayer == 'black')
-            this.relevant_tile = tilemove[2]; // moved tile from
+            this.relevant_tile = tilemove[2]; // where white moved a tile to
         else
-            this.relevant_tile = tilemove[1]; // moved tile to
+            this.relevant_tile = tilemove[1]; // where black moved a tile from
     } else {
         this.relevant_tile = '';
     }
@@ -320,6 +321,8 @@ Isopath.prototype.clone = function() {
     var newthis = new Isopath();
     newthis.board = JSON.parse(JSON.stringify(this.board));
     newthis.moves = JSON.parse(JSON.stringify(this.moves));
+    newthis.relevant_tile = this.relevant_tile;
+    newthis.tileundocounter = JSON.parse(JSON.stringify(this.tileundocounter));
     newthis.curplayer = this.curplayer;
     return newthis;
 };
