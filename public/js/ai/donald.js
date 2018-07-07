@@ -478,7 +478,7 @@ Donald.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     var trans = this.trans_lookup(isopath, depth_remaining, alpha, beta);
     if (trans) {
         alpha = trans.alpha; beta = trans.beta;
-        if (trans.move) {
+        if (trans.move && isopath.isLegalMove(trans.move)) {
             return {
                 score: trans.score,
                 move: trans.move,
