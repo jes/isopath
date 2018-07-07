@@ -430,6 +430,7 @@ Padfoot.prototype.instawin_move = function(isopath) {
                     // move a tile and then move on to the location
                     var tileto, tilefrom;
                     // XXX: this tile selection code should be shorter
+                    // TODO: there is a chance that this can select a tile that would result in an illegal move due to the tile undo rule
                     if (isopath.playerlevel[me] == 2) {
                         tileto = to;
                         var tilefroms = this.take_tiles(isopath, 2);
@@ -479,7 +480,7 @@ Padfoot.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     var trans = this.trans_lookup(isopath, depth_remaining, alpha, beta);
     if (trans) {
         alpha = trans.alpha; beta = trans.beta;
-        if (trans.move) {
+        if (trans.move && isopath.isLegalMove(trans.move)) {
             return {
                 score: trans.score,
                 move: trans.move,
