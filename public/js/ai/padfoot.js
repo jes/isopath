@@ -162,7 +162,6 @@ Padfoot.prototype.cost = function(isopath, player, place) {
 
 Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     var me = isopath.piece_at(src);
-    var you = isopath.other[me];
 
     var key = this.strboard(isopath) + ";" + src + ";" + dstset[0];
     if (this.pathscorememo[key]) {
@@ -191,21 +190,25 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     }
     dist[src] = 0;
 
+    var pathlength = 100000;
+
     while (q.length) {
         // find the point in the queue that is nearest to the source
         var u_idx = 0;
-        for (var i = 1; i < q.length; i++) {
+        for (var i = 0; i < q.length; i++) {
             if (dist[q[i]] < dist[q[u_idx]])
                 u_idx = i;
         }
 
-        // remove this item from the queue
         var u = q[u_idx];
-        q.splice(u_idx, 1);
 
         if (dstset.indexOf(u) != -1) {
+            pathlength = dist[u];
             break;
         }
+
+        // remove this item from the queue
+        q.splice(u_idx, 1);
 
         // for each neighbour of u
         for (var i = 0; i < isopath.adjacent[u].length; i++) {
@@ -215,13 +218,6 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
                 dist[v] = alt;
             }
         }
-    }
-
-    // find the length of the shortest path to any item in dstset
-    var pathlength = 100000;
-    for (var i = 0; i < dstset.length; i++) {
-        if (dist[dstset[i]] < pathlength)
-            pathlength = dist[dstset[i]];
     }
 
     // if I'm not allowed to move a piece, I'm one step further
