@@ -203,6 +203,10 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
         var u = q[u_idx];
         q.splice(u_idx, 1);
 
+        if (dstset.indexOf(u) != -1) {
+            break;
+        }
+
         // for each neighbour of u
         for (var i = 0; i < isopath.adjacent[u].length; i++) {
             var v = isopath.adjacent[u][i];
