@@ -202,6 +202,7 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
 
         var u = q[u_idx];
 
+        // if this point is in the destination set, then we've found the shortest path
         if (dstset.indexOf(u) != -1) {
             pathlength = dist[u];
             break;
@@ -220,7 +221,7 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
         }
     }
 
-    // if I'm not allowed to move a piece, I'm one step further
+    // if I'm not allowed to move a piece, I'm one step further away
     if (isopath.curplayer != me)
         pathlength++;
 
