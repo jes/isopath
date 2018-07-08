@@ -38,7 +38,7 @@ If you only want to play locally, you should be able to load `public/index.html`
 
 If you want websocket support, you'll need to get some Perl on. The easiest way to do this on Ubuntu is:
 
-    $ sudo apt install cpanminus
+    $ sudo apt install cpanminus build-essential
     $ sudo cpanm Mojolicious
     $ morbo isopath
 
