@@ -4,7 +4,7 @@
 
 function Myrtle(isopath) {
     this.isopath = isopath;
-    this.max_think = 10000; // ms
+    this.max_think = 5000; // ms
     this.plays = {};
     this.wins = {};
 }
@@ -29,33 +29,87 @@ Myrtle.prototype.strboard = function(isopath) {
 Myrtle.prototype.legal_moves = function(isopath) {
     var legal = [];
 
+    var maybe = this.maybe_legal_moves(isopath);
+
+    for (var i = 0; i < maybe.length; i++) {
+        var move = maybe[i];
+        if (isopath.isLegalMove(move))
+            legal.push(move);
+    }
+
+    return legal;
+};
+
+Myrtle.prototype.maybe_legal_moves = function(isopath) {
+    var maybe_legal = [];
+
     var me = isopath.curplayer;
 
     // TODO: captures; move a piece and then move a tile on/off the place you moved the piece from
 
     for (var i = 0; i < isopath.all_places.length; i++) {
         var tilefrom = isopath.all_places[i];
-        if (isopath.piece_at(tilefrom) != '')
+        if (isopath.piece_at(tilefrom) != '' || isopath.board[tilefrom] == 0)
             continue;
         for (var j = 0; j < isopath.all_places.length; j++) {
             var tileto = isopath.all_places[j];
-            if (isopath.piece_at(tileto) != '')
-                continue;
-            if (!isopath.isLegalMove([['tile', tilefrom, tileto]], 'halfmove-check'))
+            if (isopath.piece_at(tileto) != '' || isopath.board[tileto] == 2)
                 continue;
             for (var k = 0; k < isopath.board[me].length; k++) {
                 var piecefrom = isopath.board[me][k];
+                if (tilefrom == piecefrom || tileto == piecefrom)
+                    continue;
                 for (var l = 0; l < isopath.adjacent[piecefrom].length; l++) {
                     var pieceto = isopath.adjacent[piecefrom][l];
                     var move = [['tile', tilefrom, tileto], ['piece', piecefrom, pieceto]];
-                    if (isopath.isLegalMove(move))
-                        legal.push(move);
+                    var plus = 0;
+                    if (tileto == pieceto)
+                        plus = 1;
+                    if (tilefrom == pieceto)
+                        plus = -1;
+                    if ((isopath.board[pieceto]+plus) == isopath.playerlevel[isopath.curplayer])
+                        maybe_legal.push(move);
                 }
             }
         }
     }
 
-    return legal;
+    return maybe_legal;
+};
+
+Myrtle.prototype.random_move = function(isopath) {
+    var me = isopath.curplayer;
+
+    for (var i = 0; i < 1000; i++) {
+        var tilefrom = isopath.all_places[Math.floor(Math.random() * isopath.all_places.length)];
+        if (isopath.piece_at(tilefrom) != '' || isopath.board[tilefrom] == 0)
+            continue;
+
+        var tileto = isopath.all_places[Math.floor(Math.random() * isopath.all_places.length)];
+        if (isopath.piece_at(tileto) != '' || isopath.board[tileto] == 2)
+            continue;
+
+        var piecefrom = isopath.board[me][Math.floor(Math.random() * isopath.board[me].length)];
+        var adjs = isopath.adjacent[piecefrom];
+
+        var pieceto = adjs[Math.floor(Math.random() * adjs.length)];
+
+        var plus = 0;
+        if (tileto == pieceto)
+            plus = 1;
+        if (tilefrom == pieceto)
+            plus = -1;
+        if ((isopath.board[pieceto]+plus) != isopath.playerlevel[me])
+            continue;
+
+        var move = [['tile',tilefrom,tileto], ['piece',piecefrom,pieceto]];
+
+        if (isopath.isLegalMove(move))
+            return move;
+    }
+
+    // XXX: what do?
+    return [];
 };
 
 Myrtle.prototype.run_simulation = function(isopath) {
@@ -64,8 +118,9 @@ Myrtle.prototype.run_simulation = function(isopath) {
     var startplayer = isopath.curplayer;
 
     for (var t = 0; t < 200; t++) {
-        var legal = this.legal_moves(isopath);
-        var play = legal[Math.floor(Math.random() * legal.length)];
+        var play = this.random_move(isopath);
+        if (play.length == 0)
+            return;
 
         isopath.playMove(play);
 
