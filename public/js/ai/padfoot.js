@@ -5,12 +5,13 @@
  *    https://incoherency.co.uk/blog/stories/isopath-intro.html
  */
 
-function Padfoot(isopath, constants) {
+function Padfoot(isopath, constants, depth, nmoves) {
     this.isopath = isopath;
     this.constants = constants;
-    this.searchdepth = 2;
+    this.searchdepth = depth;
     this.transpos = {nelems: 0};
     this.pathscorememo = {nelems: 0};
+    this.nmoves = nmoves;
 }
 
 Padfoot.maxscore = 100000;
@@ -367,8 +368,8 @@ Padfoot.prototype.candidate_moves = function(isopath) {
     // TODO: we should also be able to remove/place a tile on the space we just
     //       moved a man off, in the case of "can move here immediately", or
     //       captured a man from, in the case of a capture
-    var tilefroms = this.take_tiles(isopath, 3);
-    var tiletos = this.place_tiles(isopath, 3);
+    var tilefroms = this.take_tiles(isopath, this.nmoves);
+    var tiletos = this.place_tiles(isopath, this.nmoves);
 
     // piece moves:
     for (var i = 0; i < isopath.board[me].length; i++) {
@@ -674,5 +675,5 @@ Padfoot.prototype.move = function() {
 };
 
 IsopathAI.register_ai('padfoot', 'Padfoot', function(isopath) {
-    return new Padfoot(isopath, [1,2,3,4,5,6,1,1000,2,2,0.5]);
+    return new Padfoot(isopath, [1,2,3,4,5,6,1,1000,1000,2,0.5], 2, 4);
 });

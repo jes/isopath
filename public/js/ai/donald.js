@@ -2,12 +2,13 @@
  * (it's a copy-and-paste of Padfoot, with minor tweaks)
  */
 
-function Donald(isopath, constants) {
+function Donald(isopath, constants, depth, nmoves) {
     this.isopath = isopath;
     this.constants = constants;
-    this.searchdepth = 2;
+    this.searchdepth = depth;
     this.transpos = {nelems: 0};
     this.pathscorememo = {nelems: 0};
+    this.nmoves = nmoves;
 }
 
 Donald.maxscore = 100000;
@@ -138,30 +139,59 @@ Donald.prototype.evaluate = function(isopath) {
 // shortest path:
 
 Donald.prototype.cost = function(isopath, player, place) {
-    var cost;
+    // cost if the space is occupied
+    if (isopath.piece_at(place) != '')
+        return this.constants[4];
+
+    // cost if the space is threatened (as long as it's not a game-winning tile)
+    if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
+        return this.constants[3];
 
     // cost for having to move pieces and tiles
     if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
-        cost = this.constants[0];
+        return this.constants[0];
     else if (isopath.board[place] == 1)
-        cost = this.constants[1];
+        return this.constants[1];
     else
-        cost = this.constants[2];
+        return this.constants[2];
+};
 
-    // 100 cost if the space is threatened (as long as it's not a game-winning tile)
-    if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
-        cost = this.constants[3];
+Donald.prototype.all_costs = function(isopath, player) {
+    var c = {};
 
-    // 100 cost if the space is occupied
-    if (isopath.piece_at(place) != '')
-        cost = this.constants[4];
+    // basic costs
+    for (var i = 0; i < isopath.all_places.length; i++) {
+        var place = isopath.all_places[i];
 
-    return cost;
+        // cost for having to move pieces and tiles
+        if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
+            c[place] = this.constants[0];
+        else if (isopath.board[place] == 1)
+            c[place] = this.constants[1];
+        else
+            c[place] = this.constants[2];
+    }
+
+    // cost for spaces that are occupied
+    for (var i = 0; i < 4; i++) {
+        if (i < isopath.board['white'].length)
+            c[isopath.board['white'][i]] = this.constants[4];
+        if (i < isopath.board['black'].length)
+            c[isopath.board['black'][i]] = this.constants[4];
+    }
+
+    // cost for spaces that are threatened
+    for (var i = 0; i < isopath.board[player].length; i++) {
+        var place = isopath.board[player][i];
+        if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
+            c[place] = this.constants[3];
+    }
+
+    return c;
 };
 
 Donald.prototype.pathscore = function(isopath, src, dstset) {
     var me = isopath.piece_at(src);
-    var you = isopath.other[me];
 
     var key = this.strboard(isopath) + ";" + src + ";" + dstset[0];
     if (this.pathscorememo[key]) {
@@ -190,40 +220,53 @@ Donald.prototype.pathscore = function(isopath, src, dstset) {
     }
     dist[src] = 0;
 
-    while (q.length) {
+    var pathlength = 100000;
+
+    var qlength = q.length;
+    var visited = {};
+    var cost = this.all_costs(isopath, me);
+    while (qlength) {
         // find the point in the queue that is nearest to the source
         var u_idx = 0;
-        for (var i = 1; i < q.length; i++) {
-            if (dist[q[i]] < dist[q[u_idx]])
+        var distu = dist[q[u_idx]];
+        for (var i = 1; i < qlength; i++) { // start at i=1 because u_idx is already initialised to 0
+            if (dist[q[i]] < distu) {
                 u_idx = i;
+                distu = dist[q[u_idx]];
+            }
+        }
+
+        var u = q[u_idx];
+        visited[u] = true;
+
+        // if this point is in the destination set, then we've found the shortest path
+        if (dstset.indexOf(u) != -1) {
+            pathlength = distu;
+            break;
         }
 
         // remove this item from the queue
-        var u = q[u_idx];
-        q.splice(u_idx, 1);
+        // (swap in the element from the end, and decrease the length)
+        q[u_idx] = q[--qlength];
 
         // for each neighbour of u
-        for (var i = 0; i < isopath.adjacent[u].length; i++) {
-            var v = isopath.adjacent[u][i];
-            var alt = dist[u] + this.cost(isopath, me, v);
+        var adj = isopath.adjacent[u];
+        for (var i = 0; i < adj.length; i++) {
+            var v = adj[i];
+            if (visited[v])
+                continue;
+            var alt = distu + cost[v];
             if (alt < dist[v]) {
                 dist[v] = alt;
             }
         }
     }
 
-    // find the length of the shortest path to any item in dstset
-    var pathlength = 100000;
-    for (var i = 0; i < dstset.length; i++) {
-        if (dist[dstset[i]] < pathlength)
-            pathlength = dist[dstset[i]];
-    }
-
-    // if I'm not allowed to move a piece, I'm one step further
+    // if I'm not allowed to move a piece, I'm one step further away
     if (isopath.curplayer != me)
         pathlength++;
 
-    if (this.pathscorememo.nelems > 100000)
+    if (this.pathscorememo.nelems > 50000)
         this.pathscorememo = {nelems:0};
     this.pathscorememo[key] = this.constants[7] / pathlength;
 
@@ -324,8 +367,8 @@ Donald.prototype.candidate_moves = function(isopath) {
     // TODO: we should also be able to remove/place a tile on the space we just
     //       moved a man off, in the case of "can move here immediately", or
     //       captured a man from, in the case of a capture
-    var tilefroms = this.take_tiles(isopath, 3);
-    var tiletos = this.place_tiles(isopath, 3);
+    var tilefroms = this.take_tiles(isopath, this.nmoves);
+    var tiletos = this.place_tiles(isopath, this.nmoves);
 
     // piece moves:
     for (var i = 0; i < isopath.board[me].length; i++) {
@@ -429,6 +472,7 @@ Donald.prototype.instawin_move = function(isopath) {
                     // move a tile and then move on to the location
                     var tileto, tilefrom;
                     // XXX: this tile selection code should be shorter
+                    // TODO: there is a chance that this can select a tile that would result in an illegal move due to the tile undo rule
                     if (isopath.playerlevel[me] == 2) {
                         tileto = to;
                         var tilefroms = this.take_tiles(isopath, 2);
@@ -601,7 +645,7 @@ Donald.prototype.trans_lookup = function(isopath, depth_remaining, alpha, beta) 
 
 Donald.prototype.trans_insert = function(isopath, move, depth_remaining, alphaorig, beta) {
     // jescache...
-    if (this.transpos.nelems > 100000) {
+    if (this.transpos.nelems > 50000) {
         this.transpos = {nelems: 0};
     }
 
@@ -630,5 +674,5 @@ Donald.prototype.move = function() {
 };
 
 IsopathAI.register_ai('donald', 'Donald', function(isopath) {
-    return new Donald(isopath, [1,2,3,4,5,6,1,1000,2,2,0.5]);
+    return new Donald(isopath, [1,2,3,4,5,6,1,1000,1000,2,0.5], 2, 4);
 });
