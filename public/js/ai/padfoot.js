@@ -139,25 +139,21 @@ Padfoot.prototype.evaluate = function(isopath) {
 // shortest path:
 
 Padfoot.prototype.cost = function(isopath, player, place) {
-    var cost;
+    // cost if the space is occupied
+    if (isopath.piece_at(place) != '')
+        return this.constants[4];
+
+    // cost if the space is threatened (as long as it's not a game-winning tile)
+    if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
+        return this.constants[3];
 
     // cost for having to move pieces and tiles
     if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
-        cost = this.constants[0];
+        return this.constants[0];
     else if (isopath.board[place] == 1)
-        cost = this.constants[1];
+        return this.constants[1];
     else
-        cost = this.constants[2];
-
-    // 100 cost if the space is threatened (as long as it's not a game-winning tile)
-    if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
-        cost = this.constants[3];
-
-    // 100 cost if the space is occupied
-    if (isopath.piece_at(place) != '')
-        cost = this.constants[4];
-
-    return cost;
+        return this.constants[2];
 };
 
 Padfoot.prototype.pathscore = function(isopath, src, dstset) {
@@ -192,10 +188,11 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
 
     var pathlength = 100000;
 
-    while (q.length) {
+    var qlength = q.length;
+    while (qlength) {
         // find the point in the queue that is nearest to the source
         var u_idx = 0;
-        for (var i = 0; i < q.length; i++) {
+        for (var i = 1; i < qlength; i++) { // start at i=1 because u_idx is already initialised to 0
             if (dist[q[i]] < dist[q[u_idx]])
                 u_idx = i;
         }
@@ -209,11 +206,13 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
         }
 
         // remove this item from the queue
-        q.splice(u_idx, 1);
+        //q.splice(u_idx, 1);
+        q[u_idx] = q[--qlength];
 
         // for each neighbour of u
-        for (var i = 0; i < isopath.adjacent[u].length; i++) {
-            var v = isopath.adjacent[u][i];
+        var adj = isopath.adjacent[u];
+        for (var i = 0; i < adj.length; i++) {
+            var v = adj[i];
             var alt = dist[u] + this.cost(isopath, me, v);
             if (alt < dist[v]) {
                 dist[v] = alt;
