@@ -266,7 +266,7 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     if (isopath.curplayer != me)
         pathlength++;
 
-    if (this.pathscorememo.nelems > 100000)
+    if (this.pathscorememo.nelems > 50000)
         this.pathscorememo = {nelems:0};
     this.pathscorememo[key] = this.constants[7] / pathlength;
 
@@ -645,7 +645,7 @@ Padfoot.prototype.trans_lookup = function(isopath, depth_remaining, alpha, beta)
 
 Padfoot.prototype.trans_insert = function(isopath, move, depth_remaining, alphaorig, beta) {
     // jescache...
-    if (this.transpos.nelems > 100000) {
+    if (this.transpos.nelems > 50000) {
         this.transpos = {nelems: 0};
     }
 

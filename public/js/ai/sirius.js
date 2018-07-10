@@ -437,7 +437,7 @@ Sirius.prototype.dfs = function(isopath, depth_remaining, alpha, beta) {
     }
 
     // jescache...
-    if (this.transpos.nelems > 100000) {
+    if (this.transpos.nelems > 50000) {
         this.transpos = {nelems: 0};
     }
 
