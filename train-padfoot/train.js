@@ -6,12 +6,18 @@ eval(fs.readFileSync('../public/js/ai/padfoot.js').toString());
 
 var generation = 1;
 var population = [
-{constants:[1.04,2.18,3.14,3.65,4.77,5.63,1,876.35,1.63,2.48,0.46],score:0},
-{constants:[1.04,2.18,3.14,3.63,4.77,5.12,1,876.35,1.63,2.48,0.46],score:0},
-{constants:[1.04,2.18,3.14,3.07,4.77,5.63,0.95,922.68,1.63,2.48,0.46],score:0},
-{constants:[1.04,2.18,3.14,3.65,4.77,5.63,1,753.86,1.63,2.48,0.46],score:0},
-{constants:[0.97,2.18,2.96,3.65,5.15,5.36,1,758.84,1.63,2.48,0.46],score:0},
-{constants:[1.04,2.18,3.36,3.65,5.39,5.36,1,848.73,1.63,2.48,0.46],score:0},
+[ { constants: [ 1.18, 1.9, 3.14, 4.87, 4.77, 263.3, 0.88, 926.96, 930.63, 3.15, 0.03 ],
+    score: 0 },
+  { constants: [ 1.18, 1.9, 3.14, 4.87, 4.77, 263.3, 0.88, 746.7, 930.63, 3.15, 0.03 ],
+    score: 0 },
+  { constants: [ 1.18, 1.9, 2.42, 4.87, 4.77, 263.3, 0.88, 965.23, 930.63, 3.15, 0.03 ],
+    score: 0 },
+  { constants: [ 1.18, 1.9, 3.14, 4.87, 4.77, 263.3, 0.88, 926.96, 930.63, 3.11, 0.03 ],
+    score: 0 },
+  { constants: [ 1.18, 1.9, 2.62, 4.87, 4.77, 263.3, 0.88, 926.96, 930.63, 3.15, 0.03 ],
+    score: 0 },
+  { constants: [ 1.02, 1.9, 2.42, 46.1, 4.77, 263.3, 0.88, 926.96, 930.63, 3.15, 0.03 ],
+    score: 0 } ]
 ];
 
 function combine(a, b) {
@@ -40,6 +46,12 @@ function combine(a, b) {
     for (var i = 0; i < child.length; i++) {
         if (Math.random() > 0.9) {
             child[i] = Math.round(100 * child[i] * (0.8 + Math.random() * 0.4)) / 100;
+        }
+        if (Math.random() > 0.99) {
+            child[i] = Math.round(100 * child[i] * (Math.random() * 10)) / 100;
+        }
+        if (Math.random() > 0.99) {
+            child[i] = Math.round(100 * child[i] * (Math.random() * 0.1)) / 100;
         }
     }
 
@@ -81,6 +93,7 @@ function reproduce() {
     }
 
     population = newpopulation;
+    console.log(population);
 }
 
 function round_robin_tournament() {
