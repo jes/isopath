@@ -5,7 +5,7 @@ eval(fs.readFileSync('../public/js/isopath-ai.js').toString());
 eval(fs.readFileSync('../public/js/ai/padfoot.js').toString());
 
 var generation = 1;
-var population = [
+var population =
 [ { constants: [ 1.18, 1.9, 3.14, 4.87, 4.77, 263.3, 0.88, 926.96, 930.63, 3.15, 0.03 ],
     score: 0 },
   { constants: [ 1.18, 1.9, 3.14, 4.87, 4.77, 263.3, 0.88, 746.7, 930.63, 3.15, 0.03 ],
@@ -18,7 +18,7 @@ var population = [
     score: 0 },
   { constants: [ 1.02, 1.9, 2.42, 46.1, 4.77, 263.3, 0.88, 926.96, 930.63, 3.15, 0.03 ],
     score: 0 } ]
-];
+;
 
 function combine(a, b) {
     var child = [];
