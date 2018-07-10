@@ -192,28 +192,31 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     while (qlength) {
         // find the point in the queue that is nearest to the source
         var u_idx = 0;
+        var distu = dist[q[u_idx]];
         for (var i = 1; i < qlength; i++) { // start at i=1 because u_idx is already initialised to 0
-            if (dist[q[i]] < dist[q[u_idx]])
+            if (dist[q[i]] < distu) {
                 u_idx = i;
+                distu = dist[q[u_idx]];
+            }
         }
 
         var u = q[u_idx];
 
         // if this point is in the destination set, then we've found the shortest path
         if (dstset.indexOf(u) != -1) {
-            pathlength = dist[u];
+            pathlength = distu;
             break;
         }
 
         // remove this item from the queue
-        //q.splice(u_idx, 1);
+        // (swap in the element from the end, and decrease the length)
         q[u_idx] = q[--qlength];
 
         // for each neighbour of u
         var adj = isopath.adjacent[u];
         for (var i = 0; i < adj.length; i++) {
             var v = adj[i];
-            var alt = dist[u] + this.cost(isopath, me, v);
+            var alt = distu + this.cost(isopath, me, v);
             if (alt < dist[v]) {
                 dist[v] = alt;
             }
