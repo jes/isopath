@@ -156,6 +156,40 @@ Padfoot.prototype.cost = function(isopath, player, place) {
         return this.constants[2];
 };
 
+Padfoot.prototype.all_costs = function(isopath, player) {
+    var c = {};
+
+    // basic costs
+    for (var i = 0; i < isopath.all_places.length; i++) {
+        var place = isopath.all_places[i];
+
+        // cost for having to move pieces and tiles
+        if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
+            c[place] = this.constants[0];
+        else if (isopath.board[place] == 1)
+            c[place] = this.constants[1];
+        else
+            c[place] = this.constants[2];
+    }
+
+    // cost for spaces that are occupied
+    for (var i = 0; i < 4; i++) {
+        if (i < isopath.board['white'].length)
+            c[isopath.board['white'][i]] = this.constants[4];
+        if (i < isopath.board['black'].length)
+            c[isopath.board['black'][i]] = this.constants[4];
+    }
+
+    // cost for spaces that are threatened
+    for (var i = 0; i < isopath.board[player].length; i++) {
+        var place = isopath.board[player][i];
+        if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
+            c[place] = this.constants[3];
+    }
+
+    return c;
+};
+
 Padfoot.prototype.pathscore = function(isopath, src, dstset) {
     var me = isopath.piece_at(src);
 
@@ -190,7 +224,7 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
 
     var qlength = q.length;
     var visited = {};
-    var cost = {};
+    var cost = this.all_costs(isopath, me);
     while (qlength) {
         // find the point in the queue that is nearest to the source
         var u_idx = 0;
@@ -221,8 +255,6 @@ Padfoot.prototype.pathscore = function(isopath, src, dstset) {
             var v = adj[i];
             if (visited[v])
                 continue;
-            if (!(v in cost))
-                cost[v] = this.cost(isopath, me, v);
             var alt = distu + cost[v];
             if (alt < dist[v]) {
                 dist[v] = alt;
