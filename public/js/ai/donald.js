@@ -11,7 +11,7 @@ function Donald(isopath, constants, depth, nmoves) {
     this.nmoves = nmoves;
 }
 
-Donald.maxscore = 100000;
+Donald.maxscore = 10000000;
 
 // https://stackoverflow.com/a/6274381
 Donald.prototype.shuffle = function(a) {
@@ -36,6 +36,8 @@ Donald.piece_score = function(place, colour) {
     }
 
     var row = 4 + place.charCodeAt(0) - 'a'.charCodeAt(0);
+    if (place.charAt(0) == 'b')
+        row = 20;
     return 100 + row*row*10;
 };
 
