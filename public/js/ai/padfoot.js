@@ -148,30 +148,22 @@ Padfoot.prototype.cost = function(isopath, player, place) {
     if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
         return this.constants[3];
 
+    // cost for having to move tiles is greater if we're nearer the tile reversion limit than the opponent is
+    var tile_reversion_cost = 0;
+    if (isopath.relevant_tile == place && isopath.tileundocounters[isopath.other[player]] <= isopath.tileundocounters[player])
+        tile_reversion_cost = 1;
+
     // cost for having to move pieces and tiles
     if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
-        return this.constants[0];
+        return this.constants[0] + tile_reversion_cost;
     else if (isopath.board[place] == 1)
-        return this.constants[1];
+        return this.constants[1] + tile_reversion_cost;
     else
-        return this.constants[2];
+        return this.constants[2] + tile_reversion_cost;
 };
 
 Padfoot.prototype.all_costs = function(isopath, player) {
     var c = {};
-
-    // basic costs
-    for (var i = 0; i < isopath.all_places.length; i++) {
-        var place = isopath.all_places[i];
-
-        // cost for having to move pieces and tiles
-        if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
-            c[place] = this.constants[0];
-        else if (isopath.board[place] == 1)
-            c[place] = this.constants[1];
-        else
-            c[place] = this.constants[2];
-    }
 
     // cost for spaces that are occupied
     for (var i = 0; i < 4; i++) {
@@ -186,6 +178,28 @@ Padfoot.prototype.all_costs = function(isopath, player) {
         var place = isopath.board[player][i];
         if (this.num_adjacent(isopath, isopath.other[player], place) >= 2 && (isopath.homerow[isopath.other[player]].indexOf(place) == -1))
             c[place] = this.constants[3];
+    }
+
+    // basic costs
+    for (var i = 0; i < isopath.all_places.length; i++) {
+        var place = isopath.all_places[i];
+
+        // don't overwrite places we've already done
+        if (place in c)
+            continue;
+
+        // cost for having to move tiles is greater if we're nearer the tile reversion limit than the opponent is
+        var tile_reversion_cost = 0;
+        if (isopath.relevant_tile == place && isopath.tileundocounters[isopath.other[player]] <= isopath.tileundocounters[player])
+            tile_reversion_cost = 1;
+
+        // cost for having to move pieces and tiles
+        if (isopath.playerlevel[player] == isopath.board[place] || (isopath.board[place] == 1 && isopath.homerow[isopath.other[player]].indexOf(place) != -1))
+            c[place] = this.constants[0] + tile_reversion_cost;
+        else if (isopath.board[place] == 1)
+            c[place] = this.constants[1] + tile_reversion_cost;
+        else
+            c[place] = this.constants[2] + tile_reversion_cost;
     }
 
     return c;
@@ -675,5 +689,5 @@ Padfoot.prototype.move = function() {
 };
 
 IsopathAI.register_ai('padfoot', 'Padfoot', function(isopath) {
-    return new Padfoot(isopath, [1,2,3,4,5,6,1,1000,1000,2,0.5], 2, 4);
+    return new Padfoot(isopath, [1,2,3,4,5,6,1,1000,1000,2,0.5], 2, 3);
 });
