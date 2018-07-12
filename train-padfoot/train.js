@@ -17,7 +17,10 @@ var population =
   { constants: [ 1.18, 1.9, 2.62, 4.87, 4.77, 263.3, 0.88, 926.96, 930.63, 3.15, 0.03 ],
     score: 0 },
   { constants: [ 1.02, 1.9, 2.42, 46.1, 4.77, 263.3, 0.88, 926.96, 930.63, 3.15, 0.03 ],
-    score: 0 } ]
+    score: 0 },
+  { constants: [1,2,3,4,5,6,1,1000,1000,2,0.5],
+    score: 0},
+ ]
 ;
 
 function combine(a, b) {
@@ -100,15 +103,15 @@ function round_robin_tournament() {
     console.log("");
     console.log("Generation " + generation + ":");
     for (var i = 0; i < population.length; i++) {
-        for (var j = i+1; j < population.length; j++) {
+        for (var j = 0; j < population.length; j++) {
             if (i == j)
                 continue;
 
             console.log(JSON.stringify(population[i].constants) + " v " + JSON.stringify(population[j].constants));
 
             var isopath = new Isopath();
-            var white = new Padfoot(isopath, population[i].constants);
-            var black = new Padfoot(isopath, population[j].constants);
+            var white = new Padfoot(isopath, population[i].constants, 2, 3);
+            var black = new Padfoot(isopath, population[j].constants, 2, 3);
 
             var winner = play_game(isopath, white, black, 60);
             if (winner == 'white') {
