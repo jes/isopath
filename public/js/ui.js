@@ -22,6 +22,9 @@ $(document).ready(function() {
         }
 
         if (ingame) {
+            if (isopath.moves.length === 0) {
+                $('#undo-move').attr('disabled', true);
+            }
             if (localgame)
                 $('#whoseturn').text(isopath.curplayer + "'s");
             $('#are').text('are');
