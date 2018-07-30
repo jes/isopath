@@ -9,7 +9,7 @@ $(document).ready(function() {
     var localgame = false;
 
     function ready() {
-        $('#status').text('Ready.');
+        $('#status').text(_('Ready.'));
     }
 
     function redraw() {
@@ -71,11 +71,11 @@ $(document).ready(function() {
                 $('#gamestate').show();
 
                 if (player == 'white') {
-                    $('#white-name').text('Local player');
-                    $('#black-name').text('Remote player');
+                    $('#white-name').text(_('Local player'));
+                    $('#black-name').text(_('Remote player'));
                 } else {
-                    $('#black-name').text('Local player');
-                    $('#white-name').text('Remote player');
+                    $('#black-name').text(_('Local player'));
+                    $('#white-name').text(_('Remote player'));
                 }
 
                 view = new IsopathView({
@@ -117,7 +117,7 @@ $(document).ready(function() {
                 ready();
             },
             usToMove: function() {
-                $('#whoseturn').text('your');
+                $('#whoseturn').text(_('your'));
                 ourturn = true;
                 $('#reset-move').show();
                 clickmode = '';
@@ -136,13 +136,13 @@ $(document).ready(function() {
                 ready();
             },
             disconnected: function() {
-                $('#status').text("Disconnected.");
+                $('#status').text(_("Disconnected."));
                 ingame = false;
                 connected = false;
             },
             error: function(err) {
                 if (ingame) {
-                    $('#status').text("Error: " + err);
+                    $('#status').text(_("Error") + ": " + err);
                 } else {
                     $('#awaiting-opponent').hide();
                     $('#gamestate').hide();
@@ -152,7 +152,7 @@ $(document).ready(function() {
             },
         });
         ws.connect();
-        $('#status').text("Connecting to websocket...");
+        $('#status').text(_("Connecting to websocket..."));
 
         // ping every 60s just to keep the websocket open
         // TODO: if we ever end up creating and deleting multiple websockets, we need
@@ -263,13 +263,13 @@ $(document).ready(function() {
         localgame = false;
         $('#lobby').hide();
         $('#status').show();
-        $('#status').text("Waiting for websocket server...");
+        $('#status').text(_("Waiting for websocket server..."));
         if ($('#play-as').val() == 'white') {
-            $('#white-name').text('Local player');
-            $('#black-name').text('Remote player');
+            $('#white-name').text(_('Local player'));
+            $('#black-name').text(_('Remote player'));
         } else {
-            $('#black-name').text('Local player');
-            $('#white-name').text('Remote player');
+            $('#black-name').text(_('Local player'));
+            $('#white-name').text(_('Remote player'));
         }
         $('#undo-move').hide();
         connect_websocket(function(ws) {
@@ -318,11 +318,11 @@ $(document).ready(function() {
     for (ai in ais) {
         $('#white-player').append($('<option>', {
             value: ai,
-            text: "Computer: " + ais[ai].name,
+            text: _("Computer") + ": " + ais[ai].name,
         }));
         $('#black-player').append($('<option>', {
             value: ai,
-            text: "Computer: " + ais[ai].name,
+            text: _("Computer") + ": " + ais[ai].name,
         }));
     }
 
@@ -331,7 +331,7 @@ $(document).ready(function() {
     if (match) {
         $('#status').show();
         $('#undo-move').hide();
-        $('#status').text("Waiting for websocket server...");
+        $('#status').text(_("Waiting for websocket server..."));
         connect_websocket(function(ws) {
             ws.joinGame(match[1]);
             $('#lobby').hide();

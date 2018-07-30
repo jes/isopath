@@ -3,6 +3,7 @@
 <head>
 <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="css/hexagons.css">
+<meta charset="utf-8">
 <title>Isopath</title>
 </head>
 <body>
@@ -13,8 +14,8 @@
             <h1>Isopath</h1>
         </div>
         <div style="float:right; padding-top: 20px">
-            <a style="margin-right: 20px" id="about" href="#" data-toggle="modal" data-target="#rulesModal">Rules</a>
-            <a id="about" href="#" data-toggle="modal" data-target="#aboutModal">About</a>
+            <a style="margin-right: 20px" id="about" href="#" data-toggle="modal" data-target="#rulesModal" stonejs>Rules</a>
+            <a id="about" href="#" data-toggle="modal" data-target="#aboutModal" stonejs>About</a>
         </div>
         <div style="clear:both"></div>
         <hr>
@@ -24,7 +25,7 @@
       <div class="modal-lg modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="rulesModalLabel">Rules</h5>
+            <h5 class="modal-title" id="rulesModalLabel" stonejs>Rules</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -126,7 +127,7 @@ wins as soon as he captures his opponent's final piece, as that would leave the 
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="aboutModalLabel">About</h5>
+            <h5 class="modal-title" id="aboutModalLabel" stonejs>About</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -143,7 +144,7 @@ wins as soon as he captures his opponent's final piece, as that would leave the 
             <p>Please email <a href="mailto:james@incoherency.co.uk">james@incoherency.co.uk</a> if you want to get in touch.</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" stonejs>Close</button>
           </div>
         </div>
       </div>
@@ -152,59 +153,59 @@ wins as soon as he captures his opponent's final piece, as that would leave the 
     <div id="game">
         <div class="row">
             <div>
-                <span style="float:right; padding-right: 100px" id="black-name">Black</span>
+                <span style="float:right; padding-right: 100px" id="black-name" stonejs>Black</span>
                 <div style="clear:both"></div>
                 <div id="hexgrid"></div>
                 <div style="clear:both"></div>
-                <span style="float:right; padding-right: 100px"id="white-name">White</span>
+                <span style="float:right; padding-right: 100px"id="white-name" stonejs>White</span>
             </div>
 
             <div class="col-md-5">
                 <div id="lobby">
                     <div class="form-inline">
-                        White player:&nbsp;
+                        <span stonejs>White player</span>:&nbsp;
                         <select class="form-control" id="white-player">
-                            <option value="human">Human</option>
+                            <option value="human" stonejs>Human</option>
                         </select>
                     </div>
                     <div class="form-inline">
-                        Black player:&nbsp;
+                        <span stonejs>Black player</span>:&nbsp;
                         <select class="form-control" id="black-player">
-                            <option value="human">Human</option>
+                            <option value="human" stonejs>Human</option>
                         </select>
                     </div>
-                    <button class="btn btn-primary" id="new-local-game">New local game</button>
+                    <button class="btn btn-primary" id="new-local-game" stonejs>New local game</button>
 
                     <hr>
 
                     <div class="form-inline">
-                        Play as:&nbsp;
+                        <span stonejs>Play as</span>:&nbsp;
                         <select class="form-control" id="play-as">
-                            <option value="white">White</option>
-                            <option value="black">Black</option>
+                            <option value="white" stonejs>White</option>
+                            <option value="black" stonejs>Black</option>
                         </select>
                     </div>
-                    <button class="btn btn-primary" id="new-game">New websocket game</button>
+                    <button class="btn btn-primary" id="new-game" stonejs>New websocket game</button>
                 </div>
 
                 <div id="await-opponent">
-                    Send this link to your opponent: <a id="opponent-link" href="#" target="_blank"></a>.<br>
-                    Awaiting opponent...<br>
-                    <button class="btn btn-danger" id="await-opponent-cancel">Cancel</button>
+                    <span stonejs>Send this link to your opponent</span>: <a id="opponent-link" href="#" target="_blank"></a>.<br>
+                    <span stonejs>Awaiting opponent...</span><br>
+                    <button class="btn btn-danger" id="await-opponent-cancel" stonejs>Cancel</button>
                 </div>
 
                 <div id="gamestate">
                     <span id="partial-move"></span><br>
-                    <button class="btn btn-sm btn-primary" id="reset-move">Reset move</button><br>
-                    <button class="btn btn-sm btn-primary" id="undo-move">Undo last move</button>
-                    <button class="btn btn-sm btn-danger" id="end-game">Close game</button>
+                    <button class="btn btn-sm btn-primary" id="reset-move" stonejs>Reset move</button><br>
+                    <button class="btn btn-sm btn-primary" id="undo-move" stonejs>Undo last move</button>
+                    <button class="btn btn-sm btn-danger" id="end-game" stonejs>Close game</button>
                     <span style="color:red" id="illegal-move"></span>
 
                     <hr>
 
-                    <div class="text-muted" id="status">Loading...</div>
-                    <div id="you-are">You <span id="are">are</span> playing as <b><span id="yourcolour">white</span></b>.<br></div>
-                    <div id="whoseturn-div">It is <b><span id="whoseturn">your</span></b> turn.<br></div>
+                    <div class="text-muted" id="status" stonejs>Loading...</div>
+                    <div id="you-are">You <span id="are" stonejs>are</span> playing as <b><span id="yourcolour" stonejs>white</span></b>.<br></div>
+                    <div id="whoseturn-div"><span stonejs>It is</span> <b><span id="whoseturn" stonejs>your</span></b> <span stonejs>turn</span>.<br></div>
                     <div id="gameover"><span id="whowon"></span><br></div>
                     <div id="movehistory"></div>
                 </div>
@@ -215,13 +216,16 @@ wins as soon as he captures his opponent's final piece, as that would leave the 
     <div style="clear: both"></div>
     <div id="footer">
         <hr>
-        Game invented by <a href="https://youtube.com/user/pocket83">pocket83</a>.<br>
-        This implementation by <a href="https://incoherency.co.uk/">James Stanley</a>.
+        <span stonejs>Game invented by</span> <a href="https://youtube.com/user/pocket83">pocket83</a>.<br>
+        <span stonejs>This implementation by</span> <a href="https://incoherency.co.uk/">James Stanley</a>.
     </div>
 </div>
 
 <script src="js/jquery-3.3.1.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script src="js/stonejs.js"></script>
+<script src="js/locale/catalog.js"></script>
+<script src="js/locale.js"></script>
 <script src="js/isopath.js"></script>
 <script src="js/isopath-ws.js"></script>
 <script src="js/isopath-view.js"></script>
