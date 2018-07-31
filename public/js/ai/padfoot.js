@@ -310,6 +310,15 @@ Padfoot.prototype.paths_score = function(isopath, player) {
 // dir must be either -1 or +1
 Padfoot.prototype.alter_tiles = function(isopath, dir, max) {
     var tiles = [];
+
+    // TODO: instead of trying every tile individually,
+    // since each tile is independent,
+    // we should try every combination of 50% of the tiles,
+    // and then the tiles that are in most of the best combinations
+    // are the best tiles? would that result in different outcomes?
+    // if so, would the different outcomes be better or worse for gameplay
+    // when viewed over a larger time horizon?
+
     for (var i = 0; i < isopath.all_places.length; i++) {
         var p = isopath.all_places[i];
 
