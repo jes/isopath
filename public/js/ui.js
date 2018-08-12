@@ -1,5 +1,6 @@
 /* ui */
 $(document).ready(function() {
+    var isopath; // an Isopath from isopath.js
     var ws; // an IsopathWS from isopath-ws.js
     var view; // an IsopathView from isopath-view.js
 
@@ -50,7 +51,6 @@ $(document).ready(function() {
     }
 
     function connect_websocket(connected_cb) {
-        isopath = undefined;
         ws = new IsopathWS({
             ws: (window.location.protocol == 'http:' ? "ws://" : "wss://") + window.location.hostname + ":" + window.location.port + "/ws",
             awaitingOpponent: function(gameid) {
@@ -151,6 +151,7 @@ $(document).ready(function() {
                 ingame = false;
             },
         });
+        isopath = ws.isopath;
         ws.connect();
         $('#status').text(_("Connecting to websocket..."));
 
